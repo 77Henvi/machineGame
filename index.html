@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pose Runner Game</title>
+
+  <!-- Favicon: motion-tracking marker mark, inline SVG data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%23111111' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%2316A34A'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="is-locked">
+
+  <!-- Tutorial overlay: shown first, fades out on start -->
+  <div id="tutorialOverlay" class="tutorial-overlay">
+    <div class="tutorial-card">
+      <p class="tutorial-eyebrow">ก่อนเริ่มเล่น</p>
+      <h2>วิธีเล่น Pose Runner</h2>
+      <p class="tutorial-sub">เกมนี้ควบคุมด้วยร่างกายของคุณผ่านกล้อง ไม่ต้องแตะคีย์บอร์ดหรือเมาส์ — ทำท่าตามด้านล่างเพื่อสั่งงานตัวละคร</p>
+
+      <div class="tutorial-steps">
+        <div class="tutorial-step">
+          <div class="tutorial-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="#111111" stroke-width="1.6"/><circle cx="12" cy="12" r="2.5" fill="#111111"/></svg>
+          </div>
+          <div class="tutorial-step-text">
+            <h3>ยืนนิ่ง — Stand</h3>
+            <p>เกมจะหยุดรอ ใช้ตอนอยากพักหรือตั้งท่าก่อนเริ่ม</p>
+          </div>
+        </div>
+
+        <div class="tutorial-step">
+          <div class="tutorial-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 12h9M12 7l5 5-5 5" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="tutorial-step-text">
+            <h3>เดินอยู่กับที่ — Walk</h3>
+            <p>ตัวละครวิ่งไปข้างหน้า สะสมคะแนนไปเรื่อยๆ</p>
+          </div>
+        </div>
+
+        <div class="tutorial-step">
+          <div class="tutorial-step-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 19V5M6 11l6-6 6 6" stroke="#111111" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="tutorial-step-text">
+            <h3>กระโดด — Jump</h3>
+            <p>กระโดดขึ้นเพื่อหลบสิ่งกีดขวางที่วิ่งเข้ามา</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tutorial-note">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:2px" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="#16A34A" stroke-width="1.6"/><path d="M12 8v5M12 16h.01" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <p>ยืนให้เห็นทั้งตัวในกล้อง และอยู่ในที่ที่มีแสงเพียงพอ เพื่อให้ระบบตรวจจับท่าทางได้แม่นยำที่สุด</p>
+      </div>
+
+      <div class="tutorial-actions">
+        <button class="btn-primary" type="button" id="tutorialStartBtn">เข้าใจแล้ว เริ่มเล่นเลย</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="appShell" class="app-shell">
+
+  <div class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="14" stroke="#111111" stroke-width="2"/>
+        <circle cx="16" cy="16" r="4" fill="#16A34A"/>
+      </svg>
+      <div class="brand-text">
+        <h1>Pose Runner</h1>
+        <p>stand = หยุด &nbsp;·&nbsp; walk = เดิน &nbsp;·&nbsp; jump = กระโดด</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn" type="button" onclick="init()">เริ่มเกม</button>
+      <button type="button" onclick="restartGame()">เริ่มใหม่</button>
+    </div>
+  </div>
+
+  <div class="hud">
+
+    <!-- Camera / tracking panel -->
+    <div class="panel">
+      <p class="panel-label">
+        <span id="liveDot" class="live-dot"></span>
+        Camera Tracking
+      </p>
+
+      <div id="cameraWrap" class="camera-wrap">
+        <canvas id="cameraCanvas" width="400" height="400"></canvas>
+        <div class="camera-placeholder">
+          กดเริ่มเกมเพื่อเปิดกล้อง<br>และเริ่มตรวจจับท่าทาง
+        </div>
+      </div>
+
+      <div class="pose-readout">
+        <p id="result">ผลลัพธ์: -</p>
+        <p id="confidence">-</p>
+      </div>
+      <div id="action">สถานะ: ยังไม่เริ่ม</div>
+
+      <div class="class-scores">
+        <div class="class-row">
+          <div class="class-row-top"><span id="class1">Class 1: -</span></div>
+          <div class="class-bar-track"><div class="class-bar-fill" data-bar="1"></div></div>
+        </div>
+        <div class="class-row">
+          <div class="class-row-top"><span id="class2">Class 2: -</span></div>
+          <div class="class-bar-track"><div class="class-bar-fill" data-bar="2"></div></div>
+        </div>
+        <div class="class-row">
+          <div class="class-row-top"><span id="class3">Class 3: -</span></div>
+          <div class="class-bar-track"><div class="class-bar-fill" data-bar="3"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game panel -->
+    <div class="panel game-panel">
+      <p class="panel-label">Game</p>
+
+      <div class="game-status-row">
+        <h2 id="gameStatus">สถานะเกม: ยังไม่เริ่ม</h2>
+        <p id="gameScore">คะแนน: 0</p>
+      </div>
+
+      <div class="game-canvas-wrap">
+        <canvas id="gameCanvas" width="600" height="300"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="hint-bar">ควบคุมด้วยท่าทาง — ไม่ต้องแตะคีย์บอร์ด &nbsp;·&nbsp; ต้องการความมั่นใจ &gt;= <code>80%</code> เพื่อให้ระบบตอบสนอง</p>
+
+  </div><!-- /#appShell -->
+
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+
+  <!-- Teachable Machine Pose Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.3/dist/teachablemachine-pose.min.js"></script>
+
+  <!-- Game Script (unchanged logic) -->
+  <script src="script.js"></script>
+
+  <!-- Tutorial overlay controller: fades overlay out, fades app shell up, then starts the game -->
+  <script>
+    (function () {
+      const overlay = document.getElementById('tutorialOverlay');
+      const appShell = document.getElementById('appShell');
+      const tutorialStartBtn = document.getElementById('tutorialStartBtn');
+
+      tutorialStartBtn.addEventListener('click', function () {
+        overlay.classList.add('is-hidden');
+        document.body.classList.remove('is-locked');
+        appShell.classList.add('is-visible');
+
+        // Remove overlay from layout after the fade finishes
+        setTimeout(function () {
+          overlay.style.display = 'none';
+        }, 450);
+
+        // Hand off to the existing game start logic (unchanged)
+        init();
+      });
+    })();
+  </script>
+
+  <!-- UI-only enhancement layer: does not touch game logic, only reflects existing DOM text into visual state -->
+  <script>
+    (function () {
+      const cameraWrap = document.getElementById('cameraWrap');
+      const liveDot = document.getElementById('liveDot');
+      const actionEl = document.getElementById('action');
+      const confidenceEl = document.getElementById('confidence');
+      const bars = {
+        1: document.querySelector('[data-bar="1"]'),
+        2: document.querySelector('[data-bar="2"]'),
+        3: document.querySelector('[data-bar="3"]')
+      };
+      const classEls = {
+        1: document.getElementById('class1'),
+        2: document.getElementById('class2'),
+        3: document.getElementById('class3')
+      };
+
+      function parsePercent(text) {
+        const match = text.match(/([\d.]+)\s*%/);
+        return match ? parseFloat(match[1]) : 0;
+      }
+
+      function tick() {
+        const hasFeed = document.getElementById('startBtn').disabled === true;
+        cameraWrap.classList.toggle('has-feed', hasFeed);
+
+        const actionText = actionEl.textContent || '';
+        const isWarn = actionText.includes('ยังไม่มั่นใจ') || actionText.includes('ข้อผิดพลาด');
+        const isLive = hasFeed && !isWarn;
+
+        cameraWrap.classList.toggle('tracking-live', isLive);
+        cameraWrap.classList.toggle('tracking-warn', isWarn);
+        liveDot.classList.toggle('is-live', isLive);
+        liveDot.classList.toggle('is-warn', isWarn);
+
+        [1, 2, 3].forEach(function (i) {
+          const pct = parsePercent(classEls[i].textContent || '');
+          if (bars[i]) bars[i].style.width = pct + '%';
+        });
+
+        requestAnimationFrame(tick);
+      }
+
+      tick();
+    })();
+  </script>
+
+</body>
+</html>
