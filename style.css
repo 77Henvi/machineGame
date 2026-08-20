@@ -518,3 +518,196 @@ button:disabled {
   padding: 2px 6px;
   border-radius: 6px;
 }
+
+/* ============================================
+   Decorative background blobs (playful, low-opacity)
+   ============================================ */
+.bg-blobs {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+  animation: blob-drift 22s ease-in-out infinite;
+}
+
+.bg-blob.blob-1 {
+  width: 380px;
+  height: 380px;
+  top: -120px;
+  left: -100px;
+  background: #16A34A22;
+  animation-delay: 0s;
+}
+
+.bg-blob.blob-2 {
+  width: 320px;
+  height: 320px;
+  top: 40%;
+  right: -140px;
+  background: #DC262618;
+  animation-delay: -8s;
+}
+
+.bg-blob.blob-3 {
+  width: 300px;
+  height: 300px;
+  bottom: -140px;
+  left: 30%;
+  background: #11111112;
+  animation-delay: -14s;
+}
+
+@keyframes blob-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -20px) scale(1.08); }
+  66% { transform: translate(-20px, 25px) scale(0.95); }
+}
+
+.tutorial-overlay, .app-shell, .topbar, .hud, .hint-bar {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   Tutorial step icon accents (playful pastel per step)
+   ============================================ */
+.tutorial-step-icon.icon-a { background: #E8F9F0; border-color: #C7EFD9; }
+.tutorial-step-icon.icon-b { background: #FFF1E8; border-color: #FFDCC2; }
+.tutorial-step-icon.icon-c { background: #EEF1FF; border-color: #D6DCFF; }
+.tutorial-step-icon.icon-d { background: #FDEFF7; border-color: #F7D6EA; }
+
+.tutorial-step {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tutorial-step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -12px rgba(17, 17, 17, 0.25);
+}
+
+/* ============================================
+   Button polish
+   ============================================ */
+button {
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 16px -8px rgba(17, 17, 17, 0.25);
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 20px -8px rgba(17, 17, 17, 0.4);
+}
+
+/* ============================================
+   Mascot "Stretchy"
+   ============================================ */
+.mascot-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 14px;
+}
+
+#mascot {
+  width: 64px;
+  height: 64px;
+  transform-origin: 50% 85%;
+  animation: mascot-breathe 3s ease-in-out infinite;
+  transition: transform 0.25s ease;
+}
+
+@keyframes mascot-breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.05) rotate(0deg); }
+}
+
+#mascot.mascot-happy {
+  animation: mascot-bounce 0.7s ease-in-out infinite;
+}
+
+@keyframes mascot-bounce {
+  0%, 100% { transform: translateY(0) scale(1.03); }
+  50% { transform: translateY(-6px) scale(1.06); }
+}
+
+#mascot.mascot-confused {
+  animation: mascot-wiggle 0.5s ease-in-out infinite;
+}
+
+@keyframes mascot-wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}
+
+#mascot.mascot-celebrate {
+  animation: mascot-spin 0.8s ease-in-out 2;
+}
+
+@keyframes mascot-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.25); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ============================================
+   Streak flame badge
+   ============================================ */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.streak-badge svg {
+  animation: flame-flicker 1.4s ease-in-out infinite;
+}
+
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.08) rotate(-3deg); }
+  75% { transform: scale(0.96) rotate(3deg); }
+}
+
+/* ============================================
+   Confetti canvas overlay
+   ============================================ */
+.confetti-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.game-canvas-wrap {
+  position: relative;
+}
+
+/* ============================================
+   Ring glow when live
+   ============================================ */
+.camera-wrap.tracking-live {
+  animation: ring-glow-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes ring-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px var(--accent-live-soft); }
+  50% { box-shadow: 0 0 0 8px var(--accent-live-soft); }
+}

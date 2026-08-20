@@ -1,6 +1,9 @@
 // ===============================
 // Teachable Machine Model
 // ===============================
+// หมายเหตุ: ต้องเทรนโมเดลใหม่ใน Teachable Machine (Pose Project) ด้วย 4 class
+// ชื่อ class ต้องตรงกับ key ใน STRETCH_SEQUENCE ด้านล่างเป๊ะ ๆ (ตัวพิมพ์เล็ก):
+//   neck_stretch, shoulder_roll, arms_overhead, chest_opener
 const MODEL_URL = "https://teachablemachine.withgoogle.com/models/wEOUzks49/";
 const CONFIDENCE_LIMIT = 0.80;
 
@@ -10,8 +13,20 @@ let cameraCtx;
 let maxPredictions;
 let isRunning = false;
 
-let currentPose = "stand";
+let currentPose = "neutral";
 let currentConfidence = 0;
+
+// ===============================
+// Stretch Break sequence config
+// ===============================
+const STRETCH_SEQUENCE = [
+  { key: "neck_stretch", label: "ยืดคอ", instruction: "เอียงคอไปด้านข้างเบาๆ ค้างไว้", holdSeconds: 8 },
+  { key: "shoulder_roll", label: "หมุนไหล่", instruction: "ยกไหล่ขึ้นแล้วหมุนเป็นวงช้าๆ", holdSeconds: 8 },
+  { key: "arms_overhead", label: "ยกแขนเหนือหัว", instruction: "ยกแขนสองข้างเหยียดขึ้นเหนือศีรษะ", holdSeconds: 8 },
+  { key: "chest_opener", label: "เปิดอก", instruction: "กางแขนไปด้านหลัง เปิดหน้าอก", holdSeconds: 8 }
+];
+
+const HOLD_DECAY_PER_SEC = 1.6; // ความเร็วที่วงจะลดลงเมื่อหลุดท่า
 
 // ===============================
 // Game Variables
@@ -20,28 +35,44 @@ const gameCanvas = document.getElementById("gameCanvas");
 const gameCtx = gameCanvas.getContext("2d");
 
 let gameRunning = false;
-let gameOver = false;
-let score = 0;
-let frame = 0;
+let gameOver = false; // true = จบ 1 รอบพักแล้ว (ใช้ชื่อเดิมไว้ให้ tooling/CSS เข้ากันได้)
+let stepIndex = 0;
+let heldSeconds = 0;
+let totalHeldSeconds = 0; // เวลาที่ค้างท่าสำเร็จรวมทั้งรอบ (แสดงเป็นคะแนน)
+let lastFrameTime = null;
 
-const player = {
-  x: 80,
-  y: 220,
-  width: 45,
-  height: 60,
-  velocityY: 0,
-  gravity: 0.9,
-  jumpPower: -16,
-  isJumping: false
-};
+const STREAK_KEY = "stretchBreakStreak";
+const STREAK_DATE_KEY = "stretchBreakLastDate";
 
-const groundY = 280;
+function getTodayString() {
+  return new Date().toISOString().slice(0, 10);
+}
 
-let obstacles = [];
-let obstacleSpeed = 0;
+function getStreak() {
+  return parseInt(localStorage.getItem(STREAK_KEY) || "0", 10);
+}
 
-// ใช้กันกระโดดซ้ำรัว ๆ
-let lastPoseForJump = "stand";
+function registerCompletionForStreak() {
+  const today = getTodayString();
+  const lastDate = localStorage.getItem(STREAK_DATE_KEY);
+
+  if (lastDate === today) {
+    // ทำสำเร็จไปแล้ววันนี้ ไม่นับซ้ำ
+    return getStreak();
+  }
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayString = yesterday.toISOString().slice(0, 10);
+
+  let streak = getStreak();
+  streak = lastDate === yesterdayString ? streak + 1 : 1;
+
+  localStorage.setItem(STREAK_KEY, String(streak));
+  localStorage.setItem(STREAK_DATE_KEY, today);
+
+  return streak;
+}
 
 async function init() {
   const startBtn = document.getElementById("startBtn");
@@ -58,8 +89,8 @@ async function init() {
     model = await tmPose.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
 
-    if (maxPredictions !== 3) {
-      actionText.innerHTML = "คำเตือน: โมเดลนี้ไม่ได้มี 3 Class";
+    if (maxPredictions !== 4) {
+      actionText.innerHTML = "คำเตือน: โมเดลนี้ไม่ได้มี 4 Class ตามท่ายืดเหยียดที่กำหนด";
     }
 
     const size = 400;
@@ -90,13 +121,13 @@ async function init() {
   }
 }
 
-async function loop() {
+async function loop(timestamp) {
   if (!isRunning) return;
 
   webcam.update();
   await predict();
 
-  updateGame();
+  updateGame(timestamp);
   drawGame();
 
   window.requestAnimationFrame(loop);
@@ -112,8 +143,8 @@ async function predict() {
   const class2Name = prediction[1].className;
   const class2Score = prediction[1].probability;
 
-  const class3Name = prediction[2].className;
-  const class3Score = prediction[2].probability;
+  const class3Name = prediction[2] ? prediction[2].className : "-";
+  const class3Score = prediction[2] ? prediction[2].probability : 0;
 
   document.getElementById("class1").innerHTML =
     class1Name + ": " + (class1Score * 100).toFixed(2) + "%";
@@ -147,22 +178,12 @@ async function predict() {
 
     document.getElementById("action").innerHTML =
       "สถานะ: ยังไม่มั่นใจพอ";
-
-    document.body.style.backgroundColor = "#f5f5f5";
   } else {
     currentPose = resultName.toLowerCase();
     currentConfidence = resultScore;
 
     document.getElementById("action").innerHTML =
       "สถานะ: ตรวจพบ " + resultName;
-
-    if (currentPose === "stand") {
-      document.body.style.backgroundColor = "#e8f0ff";
-    } else if (currentPose === "walk") {
-      document.body.style.backgroundColor = "#e8ffe8";
-    } else if (currentPose === "jump") {
-      document.body.style.backgroundColor = "#fff3e8";
-    }
   }
 
   drawPose(pose);
@@ -179,238 +200,192 @@ function drawPose(pose) {
 }
 
 // ===============================
-// Game Logic
+// Game Logic: Stretch Break (hold-timer sequence)
 // ===============================
 function startGame() {
   gameRunning = true;
   gameOver = false;
-  score = 0;
-  frame = 0;
-  obstacleSpeed = 0;
-  obstacles = [];
+  stepIndex = 0;
+  heldSeconds = 0;
+  totalHeldSeconds = 0;
+  lastFrameTime = null;
 
-  currentPose = "stand";
-  lastPoseForJump = "stand";
+  currentPose = "neutral";
 
-  player.y = 220;
-  player.velocityY = 0;
-  player.isJumping = false;
-
+  const step = STRETCH_SEQUENCE[stepIndex];
   document.getElementById("gameStatus").innerHTML =
-    "สถานะเกม: รอเดิน";
+    "ทำท่า: " + step.label + " (1/" + STRETCH_SEQUENCE.length + ")";
   document.getElementById("gameScore").innerHTML =
-    "คะแนน: 0";
+    "ค้างท่าแล้ว: 0 วิ";
 }
 
 function restartGame() {
   startGame();
 }
 
-function updateGame() {
-  if (!gameRunning || gameOver) return;
-
-  // ===============================
-  // stand = หยุดนิ่งจริง ๆ
-  // ไม่เพิ่มคะแนน
-  // ไม่ขยับสิ่งกีดขวาง
-  // ไม่สร้างสิ่งกีดขวาง
-  // ===============================
-  if (currentPose === "stand") {
-    obstacleSpeed = 0;
-    lastPoseForJump = currentPose;
-
-    document.getElementById("gameStatus").innerHTML =
-      "สถานะเกม: ยืนอยู่ / หยุดนิ่ง";
-
-    document.getElementById("gameScore").innerHTML =
-      "คะแนน: " + score;
-
+function updateGame(timestamp) {
+  if (!gameRunning || gameOver) {
+    lastFrameTime = null;
     return;
   }
 
-  // ถ้าโมเดลยังไม่มั่นใจ ก็หยุดเกมไว้ก่อนเหมือน stand
-  if (currentPose === "unknown") {
-    obstacleSpeed = 0;
-    lastPoseForJump = currentPose;
-
-    document.getElementById("gameStatus").innerHTML =
-      "สถานะเกม: รอให้โมเดลมั่นใจก่อน";
-
+  if (lastFrameTime === null) {
+    lastFrameTime = timestamp;
     return;
   }
 
-  frame++;
+  const dt = (timestamp - lastFrameTime) / 1000;
+  lastFrameTime = timestamp;
 
-  // ===============================
-  // jump = กระโดด
-  // ให้ฉากเลื่อนต่อเล็กน้อย เพื่อให้หลบสิ่งกีดขวางได้
-  // ===============================
-  if (currentPose === "jump" && lastPoseForJump !== "jump") {
-    jumpPlayer();
-  }
+  const step = STRETCH_SEQUENCE[stepIndex];
+  const isCorrectPose = currentPose === step.key;
 
-  // ===============================
-  // walk = เกมเดิน
-  // ===============================
-  if (currentPose === "walk") {
-    obstacleSpeed = 5;
-    score += 1;
+  if (isCorrectPose) {
+    heldSeconds = Math.min(step.holdSeconds, heldSeconds + dt);
 
     document.getElementById("gameStatus").innerHTML =
-      "สถานะเกม: กำลังเดิน";
-  }
+      "ทำท่า: " + step.label + " (" + (stepIndex + 1) + "/" + STRETCH_SEQUENCE.length + ")";
+  } else {
+    heldSeconds = Math.max(0, heldSeconds - dt * HOLD_DECAY_PER_SEC);
 
-  // ===============================
-  // jump = กระโดดและเกมยังเลื่อนต่อ
-  // ถ้าอยากให้ jump หยุดฉากด้วย ให้เปลี่ยน obstacleSpeed เป็น 0
-  // ===============================
-  else if (currentPose === "jump") {
-    obstacleSpeed = 5;
-
-    document.getElementById("gameStatus").innerHTML =
-      "สถานะเกม: กระโดด";
-  }
-
-  lastPoseForJump = currentPose;
-
-  // อัปเดตผู้เล่น
-  player.y += player.velocityY;
-  player.velocityY += player.gravity;
-
-  if (player.y >= 220) {
-    player.y = 220;
-    player.velocityY = 0;
-    player.isJumping = false;
-  }
-
-  // สร้างสิ่งกีดขวางเฉพาะตอน walk หรือ jump
-  if (frame % 90 === 0) {
-    createObstacle();
-  }
-
-  // ขยับสิ่งกีดขวาง เฉพาะตอนที่ไม่ใช่ stand
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    obstacles[i].x -= obstacleSpeed;
-
-    if (checkCollision(player, obstacles[i])) {
-      endGame();
-    }
-
-    if (obstacles[i].x + obstacles[i].width < 0) {
-      obstacles.splice(i, 1);
+    if (currentPose === "unknown") {
+      document.getElementById("gameStatus").innerHTML =
+        "รอให้โมเดลมั่นใจก่อน — ทำท่า: " + step.label;
+    } else {
+      document.getElementById("gameStatus").innerHTML =
+        "ยังไม่ตรงท่า — ทำท่า: " + step.label;
     }
   }
 
   document.getElementById("gameScore").innerHTML =
-    "คะแนน: " + score;
-}
+    "ค้างท่าแล้ว: " + Math.round(totalHeldSeconds + heldSeconds) + " วิ";
 
-function jumpPlayer() {
-  if (!player.isJumping) {
-    player.velocityY = player.jumpPower;
-    player.isJumping = true;
+  if (heldSeconds >= step.holdSeconds) {
+    totalHeldSeconds += step.holdSeconds;
+    heldSeconds = 0;
+    stepIndex += 1;
+
+    if (stepIndex >= STRETCH_SEQUENCE.length) {
+      completeRound();
+    }
   }
 }
 
-function createObstacle() {
-  obstacles.push({
-    x: gameCanvas.width,
-    y: 235,
-    width: 35,
-    height: 45
-  });
-}
-
-function checkCollision(a, b) {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
-}
-
-function endGame() {
-  gameOver = true;
+function completeRound() {
   gameRunning = false;
+  gameOver = true;
+
+  const streak = registerCompletionForStreak();
 
   document.getElementById("gameStatus").innerHTML =
-    "สถานะเกม: Game Over";
+    "เสร็จสิ้น 1 รอบพัก! ต่อเนื่อง " + streak + " วัน";
+  document.getElementById("gameScore").innerHTML =
+    "ค้างท่ารวม: " + Math.round(totalHeldSeconds) + " วิ";
 }
 
+// ===============================
+// Draw: progress ring + step list
+// ===============================
 function drawGame() {
-  gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+  const w = gameCanvas.width;
+  const h = gameCanvas.height;
+
+  gameCtx.clearRect(0, 0, w, h);
 
   // พื้นหลัง
-  gameCtx.fillStyle = "#dff3ff";
-  gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-
-  // ดวงอาทิตย์
-  gameCtx.beginPath();
-  gameCtx.arc(520, 55, 30, 0, Math.PI * 2);
-  gameCtx.fillStyle = "#ffd966";
-  gameCtx.fill();
-
-  // พื้น
-  gameCtx.fillStyle = "#78c26d";
-  gameCtx.fillRect(0, groundY, gameCanvas.width, 20);
-
-  // เส้นพื้น
-  gameCtx.fillStyle = "#4b8b3b";
-  gameCtx.fillRect(0, groundY, gameCanvas.width, 5);
-
-  // ผู้เล่น
-  gameCtx.fillStyle = "#4a7cff";
-  gameCtx.fillRect(player.x, player.y, player.width, player.height);
-
-  // หัวผู้เล่น
-  gameCtx.beginPath();
-  gameCtx.arc(player.x + 22, player.y - 15, 18, 0, Math.PI * 2);
-  gameCtx.fillStyle = "#ffcc99";
-  gameCtx.fill();
-
-  // สิ่งกีดขวาง
-  for (let obs of obstacles) {
-    gameCtx.fillStyle = "#ff5c5c";
-    gameCtx.fillRect(obs.x, obs.y, obs.width, obs.height);
-  }
-
-  // แสดงข้อมูลบนจอเกม
-  gameCtx.fillStyle = "#222";
-  gameCtx.font = "20px Arial";
-  gameCtx.fillText("Pose: " + currentPose, 20, 30);
-  gameCtx.fillText("Score: " + score, 20, 60);
-
-  if (currentPose === "stand" && gameRunning && !gameOver) {
-    gameCtx.fillStyle = "rgba(255, 255, 255, 0.75)";
-    gameCtx.fillRect(190, 105, 230, 75);
-
-    gameCtx.fillStyle = "#222";
-    gameCtx.font = "28px Arial";
-    gameCtx.fillText("หยุดนิ่ง", 255, 140);
-
-    gameCtx.font = "18px Arial";
-    gameCtx.fillText("ทำท่า walk เพื่อเดินต่อ", 215, 165);
-  }
+  gameCtx.fillStyle = "#F7F7F8";
+  gameCtx.fillRect(0, 0, w, h);
 
   if (!gameRunning && !gameOver) {
-    gameCtx.fillStyle = "#222";
-    gameCtx.font = "28px Arial";
-    gameCtx.fillText("กดเริ่มเกม", 230, 145);
+    gameCtx.fillStyle = "#111111";
+    gameCtx.font = "600 22px Arial";
+    gameCtx.textAlign = "center";
+    gameCtx.fillText("กดเริ่มเกมเพื่อเริ่มรอบพัก", w / 2, h / 2);
+    gameCtx.textAlign = "left";
+    return;
   }
+
+  const ringCenterX = w / 2;
+  const ringCenterY = h / 2 - 10;
+  const ringRadius = 78;
 
   if (gameOver) {
-    gameCtx.fillStyle = "rgba(0, 0, 0, 0.55)";
-    gameCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+    // หน้าจอสรุปผล
+    gameCtx.fillStyle = "#111111";
+    gameCtx.font = "600 28px Arial";
+    gameCtx.textAlign = "center";
+    gameCtx.fillText("เสร็จสิ้น 1 รอบพัก", w / 2, h / 2 - 20);
 
-    gameCtx.fillStyle = "white";
-    gameCtx.font = "42px Arial";
-    gameCtx.fillText("GAME OVER", 170, 135);
-
-    gameCtx.font = "24px Arial";
-    gameCtx.fillText("คะแนน: " + score, 245, 175);
-    gameCtx.fillText("กดปุ่ม เริ่มใหม่ เพื่อเล่นอีกครั้ง", 145, 215);
+    gameCtx.font = "400 16px Arial";
+    gameCtx.fillStyle = "#6B6B70";
+    gameCtx.fillText("ค้างท่ารวม " + Math.round(totalHeldSeconds) + " วินาที", w / 2, h / 2 + 12);
+    gameCtx.fillText("กดปุ่ม เริ่มใหม่ เพื่อเล่นอีกรอบ", w / 2, h / 2 + 38);
+    gameCtx.textAlign = "left";
+    return;
   }
+
+  const step = STRETCH_SEQUENCE[stepIndex];
+  const progress = step ? heldSeconds / step.holdSeconds : 0;
+
+  // วงพื้นหลัง (track)
+  gameCtx.beginPath();
+  gameCtx.arc(ringCenterX, ringCenterY, ringRadius, 0, Math.PI * 2);
+  gameCtx.strokeStyle = "#E5E5E8";
+  gameCtx.lineWidth = 10;
+  gameCtx.stroke();
+
+  // วง progress
+  gameCtx.beginPath();
+  gameCtx.arc(
+    ringCenterX,
+    ringCenterY,
+    ringRadius,
+    -Math.PI / 2,
+    -Math.PI / 2 + Math.PI * 2 * progress
+  );
+  gameCtx.strokeStyle = currentPose === step.key ? "#16A34A" : "#DC2626";
+  gameCtx.lineWidth = 10;
+  gameCtx.lineCap = "round";
+  gameCtx.stroke();
+  gameCtx.lineCap = "butt";
+
+  // ตัวเลขวินาทีตรงกลางวง
+  gameCtx.fillStyle = "#111111";
+  gameCtx.font = "600 30px 'JetBrains Mono', monospace";
+  gameCtx.textAlign = "center";
+  gameCtx.fillText(Math.ceil(step.holdSeconds - heldSeconds) + "s", ringCenterX, ringCenterY + 10);
+
+  // ชื่อท่าปัจจุบัน
+  gameCtx.font = "600 20px Arial";
+  gameCtx.fillText(step.label, ringCenterX, ringCenterY - ringRadius - 24);
+
+  gameCtx.font = "400 13px Arial";
+  gameCtx.fillStyle = "#6B6B70";
+  gameCtx.fillText(step.instruction, ringCenterX, ringCenterY + ringRadius + 34);
+
+  gameCtx.textAlign = "left";
+
+  // จุดแสดงลำดับท่า (step dots) ด้านล่าง
+  const dotsY = h - 26;
+  const dotSpacing = 34;
+  const dotsStartX = w / 2 - ((STRETCH_SEQUENCE.length - 1) * dotSpacing) / 2;
+
+  STRETCH_SEQUENCE.forEach((s, i) => {
+    const dotX = dotsStartX + i * dotSpacing;
+
+    gameCtx.beginPath();
+    gameCtx.arc(dotX, dotsY, 6, 0, Math.PI * 2);
+
+    if (i < stepIndex) {
+      gameCtx.fillStyle = "#16A34A"; // ทำเสร็จแล้ว
+    } else if (i === stepIndex) {
+      gameCtx.fillStyle = "#111111"; // กำลังทำ
+    } else {
+      gameCtx.fillStyle = "#E5E5E8"; // ยังไม่ถึง
+    }
+
+    gameCtx.fill();
+  });
 }
 
 drawGame();
