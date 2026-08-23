@@ -1,386 +1,225 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stretch Break</title>
+  <title>Turn-based Fighter RPG</title>
 
-  <!-- Favicon: pixel-block mark -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23111111'/%3E%3Crect x='2' y='2' width='12' height='12' fill='%232ECC71'/%3E%3Crect x='5' y='5' width='2' height='2' fill='%23111111'/%3E%3Crect x='9' y='5' width='2' height='2' fill='%23111111'/%3E%3Crect x='5' y='9' width='6' height='2' fill='%23111111'/%3E%3C/svg%3E">
-
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23111111'/%3E%3Crect x='2' y='2' width='12' height='12' fill='%23E63946'/%3E%3Crect x='5' y='5' width='2' height='2' fill='%23111111'/%3E%3Crect x='9' y='5' width='2' height='2' fill='%23111111'/%3E%3Crect x='5' y='9' width='6' height='2' fill='%23111111'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+  <link
+    href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="is-locked">
 
-  <!-- Decorative floating background blobs -->
   <div class="bg-blobs">
     <div class="bg-blob blob-1"></div>
     <div class="bg-blob blob-2"></div>
     <div class="bg-blob blob-3"></div>
   </div>
 
-  <!-- Tutorial overlay: shown first, fades out on start -->
+  <!-- 1. Tutorial Overlay -->
   <div id="tutorialOverlay" class="tutorial-overlay">
     <div class="tutorial-card">
-      <p class="tutorial-eyebrow">ก่อนเริ่มพัก</p>
-      <h2>วิธีเล่น Stretch Break</h2>
-      <p class="tutorial-sub">พักสายตาและร่างกายช่วงบนด้วยท่ายืดเหยียด 4 ท่า ทำตามลำดับและค้างแต่ละท่าไว้จนวงกลมเต็ม — เหมาะเวลานั่งอ่านหนังสือหรือทำงานนานๆ</p>
-
+      <p class="tutorial-eyebrow">พร้อมลุยหรือยัง?</p>
+      <h2>วิธีเล่น Turn-based Fighter</h2>
+      <p class="tutorial-sub">ออกท่าทางแก้ปวดเมื่อย (ค้าง 1 วิ) หรือกดปุ่ม (1 เทิร์น 5 วิ / QTE 3 วิ)</p>
       <div class="tutorial-steps">
         <div class="tutorial-step">
-          <div class="tutorial-step-icon icon-a">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v6M12 10c-2 2-2 5 0 10M12 10c2 2 2 5 0 10" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
           <div class="tutorial-step-text">
-            <h3>1. ยืดคอ</h3>
-            <p>เอียงคอไปด้านข้างเบาๆ ค้างไว้ 8 วินาที</p>
+            <h3><img src="Icon/Attack_Icon.png" class="inline-icon"> 1. โจมตี (Attack)</h3>
+            <p>ทำดาเมจ 20 ได้เกจไม้ตาย 1 </p>
           </div>
         </div>
-
         <div class="tutorial-step">
-          <div class="tutorial-step-icon icon-b">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="7" stroke="#EA580C" stroke-width="2"/><path d="M12 8v4l3 2" stroke="#EA580C" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
           <div class="tutorial-step-text">
-            <h3>2. หมุนไหล่</h3>
-            <p>ยกไหล่ขึ้นแล้วหมุนเป็นวงช้าๆ ค้างไว้ 8 วินาที</p>
+            <h3><img src="Icon/Guard_Icon.png" class="inline-icon"> 2. ป้องกัน (Guard)</h3>
+            <p>ลดดาเมจ 10 ได้เกจไม้ตาย 1</p>
           </div>
         </div>
-
         <div class="tutorial-step">
-          <div class="tutorial-step-icon icon-c">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 20V6M7 10l5-5 5 5" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
           <div class="tutorial-step-text">
-            <h3>3. ยกแขนเหนือหัว</h3>
-            <p>เหยียดแขนสองข้างขึ้นเหนือศีรษะ ค้างไว้ 8 วินาที</p>
+            <h3><img src="Icon/QTE_Icon.png" class="inline-icon"> 3. Quick-Time Event (QTE)</h3>
+            <p>สุ่มเกิด 20% ป้องกันทันสวนกลับ 30 ดาเมจ พลาดโดน 2 เท่า!</p>
           </div>
         </div>
-
         <div class="tutorial-step">
-          <div class="tutorial-step-icon icon-d">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8c-2 1-3 3-3 5M16 8c2 1 3 3 3 5M12 6v12" stroke="#DB2777" stroke-width="2" stroke-linecap="round"/></svg>
-          </div>
           <div class="tutorial-step-text">
-            <h3>4. เปิดอก</h3>
-            <p>กางแขนไปด้านหลัง เปิดหน้าอก ค้างไว้ 8 วินาที</p>
+            <h3><img src="Icon/Ult_Icon.png" class="inline-icon"> 4. ท่าไม้ตาย (Ultimate)</h3>
+            <p>เกจครบ 4 ทำดาเมจ 50</p>
           </div>
         </div>
       </div>
+      <div class="tutorial-actions"><button class="btn-primary" type="button" id="tutorialNextBtn">ถัดไป</button></div>
+    </div>
+  </div>
 
-      <div class="tutorial-note">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:2px" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="9" stroke="#16A34A" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/></svg>
-        <p>นั่งให้เห็นครึ่งตัวบนในกล้อง (หัว-ไหล่-แขน) และอยู่ในที่ที่มีแสงเพียงพอ เพื่อให้ระบบตรวจจับท่าทางได้แม่นยำที่สุด</p>
+  <!-- 2. Character Select Overlay -->
+  <div id="charSelectOverlay" class="tutorial-overlay" style="display: none; opacity: 0;">
+    <div class="tutorial-card" style="text-align: center; max-width: 680px;">
+      <p class="tutorial-eyebrow">เลือกนักสู้ของคุณ</p>
+      <h2>Character Select</h2>
+      <div class="char-list" id="charList" style="gap: 16px; display: flex; justify-content: center; flex-wrap: wrap;">
+        <div class="char-card selected" data-char="Samurai" style="padding: 24px 16px; width: 140px;">
+          <h3>Samurai</h3>
+        </div>
+        <div class="char-card" data-char="Fighter" style="padding: 24px 16px; width: 140px;">
+          <h3>Fighter</h3>
+        </div>
+        <div class="char-card" data-char="Knight" style="padding: 24px 16px; width: 140px;">
+          <h3>Knight</h3>
+        </div>
+        <div class="char-card" data-char="Wizard" style="padding: 24px 16px; width: 140px;">
+          <h3>Battle Mage</h3>
+        </div>
+      </div>
+      <div class="tutorial-actions"><button class="btn-primary" type="button" id="toMapBtn">เลือกลุยด่าน</button></div>
+    </div>
+  </div>
+
+  <!-- 3. Map Select Overlay -->
+  <div id="mapSelectOverlay" class="tutorial-overlay" style="display: none; opacity: 0;">
+    <div class="tutorial-card" style="text-align: center; max-width: 500px;">
+      <p class="tutorial-eyebrow" style="color: #E63946;">โลกแห่งการต่อสู้</p>
+      <h2>เลือกชุดด่าน (Map Select)</h2>
+
+      <!-- 🔴 ปรับฟอนต์ให้เป็น Pixel และจัดบรรทัดใหม่ -->
+      <div id="badgeContainer"
+        style="font-family: var(--font-pixel); font-size: 14px; margin-bottom: 20px; color: var(--text); line-height: 1.5;">
+        เหรียญตรา: </div>
+
+      <div class="map-list" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;">
+        <button class="btn-map" style="background:#2ECC71;" onclick="startMap('Forest')"><img
+            src="Icon/Map_Icon/Forest_Icon.png" class="inline-icon"> Forest (Easy)</button>
+        <button class="btn-map" style="background:#F39C12;" onclick="startMap('Graveyard')"><img
+            src="Icon/Map_Icon/Graveyard_Icon.png" class="inline-icon"> Graveyard (Normal)</button>
+        <button class="btn-map" style="background:#E63946;" onclick="startMap('Vampire_Castle')"><img
+            src="Icon/Map_Icon/Vampire_Icon.png" class="inline-icon"> Vampire Castle (Hard)</button>
+        <button class="btn-map" id="secretMapBtn" style="background:#9B59B6; display:none;"
+          onclick="alert('Secrets_Map ไม่มีอยู่จริง! คุณปราบหมดแล้ว ไปพักผ่อนสายตาได้เลยครับ 😆')">❓
+          Secrets_Map</button>
       </div>
 
-      <div class="tutorial-actions">
-        <button class="btn-primary" type="button" id="tutorialStartBtn">เข้าใจแล้ว เริ่มพักเลย</button>
-      </div>
+      <div class="tutorial-actions"><button class="btn-primary" type="button" onclick="location.reload()"
+          style="background:#111; color:#fff;">กลับไปเลือกตัวละคร</button></div>
     </div>
   </div>
 
   <div id="appShell" class="app-shell">
-
-  <div class="topbar">
-    <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-        <rect width="16" height="16" fill="#111111"/>
-        <rect x="2" y="2" width="12" height="12" fill="#2ECC71"/>
-        <rect x="5" y="5" width="2" height="2" fill="#111111"/>
-        <rect x="9" y="5" width="2" height="2" fill="#111111"/>
-        <rect x="5" y="9" width="6" height="2" fill="#111111"/>
-      </svg>
-      <div class="brand-text">
-        <h1>Stretch Break</h1>
-        <p>ยืดคอ &nbsp;·&nbsp; หมุนไหล่ &nbsp;·&nbsp; ยกแขนเหนือหัว &nbsp;·&nbsp; เปิดอก</p>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button id="startBtn" type="button" onclick="init()">เริ่มพัก</button>
-      <button type="button" onclick="restartGame()">เริ่มใหม่</button>
-    </div>
-  </div>
-
-  <div class="hud">
-
-    <!-- Camera / tracking panel -->
-    <div class="panel">
-      <p class="panel-label">
-        <span id="liveDot" class="live-dot"></span>
-        Camera Tracking
-      </p>
-
-      <div id="cameraWrap" class="camera-wrap">
-        <canvas id="cameraCanvas" width="400" height="400"></canvas>
-        <div class="camera-placeholder">
-          กดเริ่มเกมเพื่อเปิดกล้อง<br>และเริ่มตรวจจับท่าทาง
-        </div>
-      </div>
-
-      <div class="pose-readout">
-        <p id="result">ผลลัพธ์: -</p>
-        <p id="confidence">-</p>
-      </div>
-      <div id="action">สถานะ: ยังไม่เริ่ม</div>
-
-      <div class="class-scores">
-        <div class="class-row">
-          <div class="class-row-top"><span id="class1">Class 1: -</span></div>
-          <div class="class-bar-track"><div class="class-bar-fill" data-bar="1"></div></div>
-        </div>
-        <div class="class-row">
-          <div class="class-row-top"><span id="class2">Class 2: -</span></div>
-          <div class="class-bar-track"><div class="class-bar-fill" data-bar="2"></div></div>
-        </div>
-        <div class="class-row">
-          <div class="class-row-top"><span id="class3">Class 3: -</span></div>
-          <div class="class-bar-track"><div class="class-bar-fill" data-bar="3"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Game panel -->
-    <div class="panel game-panel">
-      <p class="panel-label">Game</p>
-
-      <div class="mascot-wrap">
-        <svg id="mascot" viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="2" width="8" height="10" fill="#111111"/>
-          <rect x="5" y="3" width="6" height="8" fill="#2ECC71"/>
-          <rect x="6" y="6" width="1" height="1" fill="#111111"/>
-          <rect x="9" y="6" width="1" height="1" fill="#111111"/>
-          <rect x="6" y="9" width="4" height="1" fill="#111111"/>
-          <rect x="2" y="4" width="2" height="6" fill="#111111"/>
-          <rect x="12" y="4" width="2" height="6" fill="#111111"/>
-          <rect x="5" y="12" width="2" height="2" fill="#111111"/>
-          <rect x="9" y="12" width="2" height="2" fill="#111111"/>
+    <div class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+          <rect width="16" height="16" fill="#111111" />
+          <rect x="2" y="2" width="12" height="12" fill="#E63946" />
+          <rect x="5" y="5" width="2" height="2" fill="#111111" />
+          <rect x="9" y="5" width="2" height="2" fill="#111111" />
+          <rect x="5" y="9" width="6" height="2" fill="#111111" />
         </svg>
-      </div>
-
-      <div class="game-status-row">
-        <h2 id="gameStatus">สถานะเกม: ยังไม่เริ่ม</h2>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="streak-badge">
-            <svg width="12" height="12" viewBox="0 0 8 8" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="0" width="2" height="2" fill="#FFC93C"/>
-              <rect x="2" y="2" width="4" height="2" fill="#FF9F1C"/>
-              <rect x="1" y="4" width="6" height="2" fill="#E63946"/>
-              <rect x="2" y="6" width="4" height="2" fill="#FF9F1C"/>
-            </svg>
-            <span id="streakLabel">0 วัน</span>
-          </span>
-          <p id="gameScore">คะแนน: 0</p>
+        <div class="brand-text">
+          <h1>Turn-based Fighter</h1>
+          <p>ห้องที่: <span id="roomCountUI">1/4</span></p>
         </div>
       </div>
+      <div class="controls">
+        <!-- 🔴 เปลี่ยนปุ่มเสียงเป็นรูปภาพจากโฟลเดอร์ Sound_Icon -->
+        <div class="vol-controls">
+          <button type="button" class="vol-btn" onclick="bgmVolumeDown()" title="ลดเสียง">
+            <img src="Icon/Sound_Icon/Minus_Icon.png" class="inline-icon" style="margin: 0;">
+          </button>
+          <span id="volDisplay">50%</span>
+          <button type="button" class="vol-btn" onclick="bgmVolumeUp()" title="เพิ่มเสียง">
+            <img src="Icon/Sound_Icon/Plus_Icon.png" class="inline-icon" style="margin: 0;">
+          </button>
+          <button type="button" class="vol-btn" onclick="bgmToggleMute()" title="เปิด/ปิดเสียง">
+            <img src="Icon/Sound_Icon/Sound_Icon.png" class="inline-icon" id="muteIconImg" style="margin: 0;">
+          </button>
+        </div>
 
-      <div class="game-canvas-wrap">
-        <canvas id="gameCanvas" width="600" height="300"></canvas>
-        <canvas id="confettiCanvas" class="confetti-canvas" width="600" height="300"></canvas>
+        <button id="startBtn" type="button" disabled>รอเปิดกล้อง</button>
+        <button type="button" onclick="location.reload()">กลับหน้าแรก</button>
       </div>
 
-      <div class="game-actions-row">
-        <button id="skipStepBtn" type="button" onclick="skipCurrentStep()">ข้ามท่านี้</button>
+      <div class="hud">
+        <div class="panel">
+          <p class="panel-label"><span id="liveDot" class="live-dot"></span>Motion Tracking</p>
+          <div id="cameraWrap" class="camera-wrap"><canvas id="cameraCanvas" width="400" height="400"></canvas>
+            <div class="camera-placeholder">กำลังโหลดกล้อง...</div>
+          </div>
+          <div class="pose-readout">
+            <p id="result">ท่าที่จับได้: -</p>
+            <p id="confidence">-</p>
+          </div>
+          <div id="action">สถานะ: รอเปิดกล้อง</div>
+          <div class="class-scores">
+            <div class="class-row">
+              <div class="class-row-top"><span id="class1">-</span></div>
+              <div class="class-bar-track">
+                <div class="class-bar-fill" data-bar="1"></div>
+              </div>
+            </div>
+            <div class="class-row">
+              <div class="class-row-top"><span id="class2">-</span></div>
+              <div class="class-bar-track">
+                <div class="class-bar-fill" data-bar="2"></div>
+              </div>
+            </div>
+            <div class="class-row">
+              <div class="class-row-top"><span id="class3">-</span></div>
+              <div class="class-bar-track">
+                <div class="class-bar-fill" data-bar="3"></div>
+              </div>
+            </div>
+            <div class="class-row">
+              <div class="class-row-top"><span id="class4">-</span></div>
+              <div class="class-bar-track">
+                <div class="class-bar-fill" data-bar="4"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel game-panel">
+          <p class="panel-label" id="currentMapNameUI" style="display:none;">Battle Arena</p>
+          <div class="game-status-row" style="flex-direction: column; align-items: stretch; gap: 0px;">
+            <h2 id="gameStatus" style="display:none;">เตรียมตัว...</h2>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <p id="gameScore"
+                style="background: transparent; border: none; width: 100%; padding: 0px; box-shadow: none;">HP: 100 |
+                Ult:
+                0/4</p>
+            </div>
+          </div>
+
+          <div class="game-canvas-wrap"><canvas id="gameCanvas" width="600" height="300"></canvas></div>
+          <div id="combatLogUI" class="combat-log-ui"
+            style="min-height: 40px; display: flex; align-items: center; justify-content: center;">รอเริ่มเกม...</div>
+
+          <div class="manual-controls">
+            <button class="btn-action" onclick="manualAction('attack')"><img src="Icon/Attack_Icon.png"
+                class="inline-icon"> โจมตี</button>
+            <button class="btn-action" onclick="manualAction('guard')"><img src="Icon/Guard_Icon.png"
+                class="inline-icon">
+              ป้องกัน</button>
+            <button class="btn-action" onclick="manualAction('ultimate')"><img src="Icon/Ult_Icon.png"
+                class="inline-icon"> ไม้ตาย</button>
+          </div>
+        </div>
       </div>
     </div>
 
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.3/dist/teachablemachine-pose.min.js"></script>
 
-  <p class="hint-bar">ควบคุมด้วยท่าทางครึ่งตัวบน — นั่งทำงานได้เลย &nbsp;·&nbsp; ต้องการความมั่นใจ &gt;= <code>80%</code> เพื่อให้ระบบตอบสนอง</p>
+    <div id="ytplayer" style="display: none; pointer-events: none;"></div>
 
-  </div><!-- /#appShell -->
-
-  <!-- TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-
-  <!-- Teachable Machine Pose Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.3/dist/teachablemachine-pose.min.js"></script>
-
-  <!-- Game Script (unchanged logic) -->
-  <script src="script.js"></script>
-
-  <!-- Fix 6: size the game/confetti canvas to the container on first paint, before the game even starts -->
-  <script>
-    window.addEventListener('DOMContentLoaded', function () {
-      if (typeof resizeGameCanvas === 'function') resizeGameCanvas();
-    });
-  </script>
-
-  <!-- Tutorial overlay controller: fades overlay out, fades app shell up, then starts the game -->
-  <script>
-    (function () {
-      const overlay = document.getElementById('tutorialOverlay');
-      const appShell = document.getElementById('appShell');
-      const tutorialStartBtn = document.getElementById('tutorialStartBtn');
-
-      tutorialStartBtn.addEventListener('click', function () {
-        overlay.classList.add('is-hidden');
-        document.body.classList.remove('is-locked');
-        appShell.classList.add('is-visible');
-
-        // Remove overlay from layout after the fade finishes
-        setTimeout(function () {
-          overlay.style.display = 'none';
-        }, 450);
-
-        // Hand off to the existing game start logic (unchanged)
-        init();
-      });
-    })();
-  </script>
-
-  <!-- UI-only enhancement layer: does not touch game logic, only reflects existing DOM text into visual state -->
-  <script>
-    (function () {
-      const cameraWrap = document.getElementById('cameraWrap');
-      const liveDot = document.getElementById('liveDot');
-      const actionEl = document.getElementById('action');
-      const confidenceEl = document.getElementById('confidence');
-      const bars = {
-        1: document.querySelector('[data-bar="1"]'),
-        2: document.querySelector('[data-bar="2"]'),
-        3: document.querySelector('[data-bar="3"]')
-      };
-      const classEls = {
-        1: document.getElementById('class1'),
-        2: document.getElementById('class2'),
-        3: document.getElementById('class3')
-      };
-
-      function parsePercent(text) {
-        const match = text.match(/([\d.]+)\s*%/);
-        return match ? parseFloat(match[1]) : 0;
-      }
-
-      function tick() {
-        const hasFeed = document.getElementById('startBtn').disabled === true;
-        cameraWrap.classList.toggle('has-feed', hasFeed);
-
-        const actionText = actionEl.textContent || '';
-        const isWarn = actionText.includes('ยังไม่มั่นใจ') || actionText.includes('ข้อผิดพลาด');
-        const isLive = hasFeed && !isWarn;
-
-        cameraWrap.classList.toggle('tracking-live', isLive);
-        cameraWrap.classList.toggle('tracking-warn', isWarn);
-        liveDot.classList.toggle('is-live', isLive);
-        liveDot.classList.toggle('is-warn', isWarn);
-
-        [1, 2, 3].forEach(function (i) {
-          const pct = parsePercent(classEls[i].textContent || '');
-          if (bars[i]) bars[i].style.width = pct + '%';
-        });
-
-        requestAnimationFrame(tick);
-      }
-
-      tick();
-    })();
-  </script>
-
-  <!-- Playful layer: mascot reactions, streak badge, confetti — reads DOM text only, never touches game state -->
-  <script>
-    (function () {
-      const mascot = document.getElementById('mascot');
-      const gameStatusEl = document.getElementById('gameStatus');
-      const cameraWrap = document.getElementById('cameraWrap');
-      const confettiCanvas = document.getElementById('confettiCanvas');
-      const confettiCtx = confettiCanvas.getContext('2d');
-
-      let hasCelebratedThisCompletion = false;
-      let confettiParticles = [];
-      let confettiRunning = false;
-
-      function updateStreakLabel() {
-        const streak = parseInt(localStorage.getItem('stretchBreakStreak') || '0', 10);
-        document.getElementById('streakLabel').textContent = streak + ' วัน';
-      }
-
-      function spawnConfetti() {
-        const colors = ['#2ECC71', '#FFC93C', '#E63946', '#111111'];
-        confettiParticles = [];
-
-        for (let i = 0; i < 50; i++) {
-          confettiParticles.push({
-            x: confettiCanvas.width / 2,
-            y: confettiCanvas.height / 2,
-            vx: (Math.random() - 0.5) * 8,
-            vy: (Math.random() - 1.2) * 7,
-            size: (6 + Math.floor(Math.random() * 3)) * 2, // chunky pixel blocks, even sizes only
-            color: colors[Math.floor(Math.random() * colors.length)]
-          });
-        }
-
-        confettiRunning = true;
-        requestAnimationFrame(runConfetti);
-      }
-
-      function runConfetti() {
-        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-        confettiCtx.imageSmoothingEnabled = false;
-
-        let stillAlive = false;
-
-        confettiParticles.forEach(function (p) {
-          p.vy += 0.25;
-          p.x += p.vx;
-          p.y += p.vy;
-
-          if (p.y < confettiCanvas.height + 20) stillAlive = true;
-
-          // เศษกระดาษเป็นบล็อกสี่เหลี่ยมตรงๆ ไม่หมุน ให้ดูเป็นพิกเซล
-          const snappedX = Math.round(p.x / p.size) * p.size;
-          const snappedY = Math.round(p.y / p.size) * p.size;
-
-          confettiCtx.fillStyle = p.color;
-          confettiCtx.fillRect(snappedX - p.size / 2, snappedY - p.size / 2, p.size, p.size);
-        });
-
-        if (stillAlive) {
-          requestAnimationFrame(runConfetti);
-        } else {
-          confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-          confettiRunning = false;
-        }
-      }
-
-      function tick() {
-        const statusText = gameStatusEl.textContent || '';
-        const isLive = cameraWrap.classList.contains('tracking-live');
-        const isWarn = cameraWrap.classList.contains('tracking-warn');
-        const isComplete = statusText.includes('เสร็จสิ้น');
-
-        mascot.classList.remove('mascot-happy', 'mascot-confused', 'mascot-celebrate');
-
-        if (isComplete) {
-          mascot.classList.add('mascot-celebrate');
-
-          if (!hasCelebratedThisCompletion) {
-            hasCelebratedThisCompletion = true;
-            spawnConfetti();
-            updateStreakLabel();
-          }
-        } else {
-          hasCelebratedThisCompletion = false;
-
-          if (isLive && statusText.startsWith('ทำท่า:')) {
-            mascot.classList.add('mascot-happy');
-          } else if (isWarn || statusText.includes('ยังไม่ตรงท่า')) {
-            mascot.classList.add('mascot-confused');
-          }
-        }
-
-        requestAnimationFrame(tick);
-      }
-
-      updateStreakLabel();
-      tick();
-    })();
-  </script>
+    <script type="module" src="main.js"></script>
 
 </body>
+
 </html>
