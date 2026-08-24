@@ -2,7 +2,7 @@
 // config.js - ฐานข้อมูลและตั้งค่า
 // ===============================
 export const AI_MODEL = {
-    URL: "https://teachablemachine.withgoogle.com/models/wHRBR7-SN/",
+    URL: "https://teachablemachine.withgoogle.com/models/_6nxgyh4J/",
     CONFIDENCE_LIMIT: 0.80,
     PREDICT_INTERVAL_MS: 100
 };
@@ -15,7 +15,7 @@ export const GAME_SETTINGS = {
 };
 
 export const CHAR_CONFIG = {
-    Samurai: { type: 'melee', frames: { idle: 6, walk: 8, attack1: 6, attack2: 6, ult: 6, defend: 2, hurt: 3, dead: 4 } },
+    Samurai: { type: 'melee', frames: { idle: 6, walk: 8, attack1: 3, attack2: 4, ult: 6, defend: 2, hurt: 2, dead: 3 } },
     Fighter: { type: 'melee', frames: { idle: 6, walk: 8, attack1: 4, attack2: 3, ult: 4, defend: 2, hurt: 3, dead: 3 } },
     Knight: { type: 'melee', frames: { idle: 4, walk: 8, attack1: 4, attack2: 4, ult: 5, defend: 5, hurt: 2, dead: 6 } },
     Wizard: { type: 'melee', frames: { idle: 7, walk: 7, attack1: 10, attack2: 4, ult: 13, defend: 7, hurt: 3, dead: 5 } }
@@ -32,7 +32,7 @@ export const MAP_DATA = {
             { bg: "Background/Forest/Spring.png", id: 'Slime(1)', type: 'melee', hp: 50, atk: 5, folder: "In_Forest/Slime(1)/", anims: { idle: ["Idle.png", 8], walk: ["Walk.png", 8], attack1: ["Attack_1.png", 4], attack2: ["Attack_2.png", 4], hurt: ["Hurt.png", 6], dead: ["Dead.png", 3] } },
             { bg: "Background/Forest/Summer.png", id: 'Werewolf(2)', type: 'melee', hp: 100, atk: 10, folder: "In_Forest/Werewolf(2)/", anims: { idle: ["Idle.png", 8], walk: ["Walk.png", 11], attack1: ["Attack_1.png", 5], attack2: ["Attack_2.png", 4], hurt: ["Hurt.png", 2], dead: ["Dead.png", 2] } },
             { bg: "Background/Forest/Autumn.png", id: 'Satyr(3)', type: 'ranged', hp: 50, atk: 15, hits: 2, folder: "In_Forest/Satyr(3)/", anims: { idle: ["Idle.png", 7], walk: ["Idle.png", 7], attack1: ["Attack_1.png", 8], bullet: ["Attack1_Bullet.png", 8], hurt: ["Hurt.png", 4], dead: ["Dead.png", 4] } },
-            { bg: "Background/Forest/Winter.png", id: 'Minotaur(Boss)', type: 'melee', hp: 150, atk: 30, cd: 2, folder: "In_Forest/Minotaur(Boss)/", anims: { idle: ["Idle.png", 10], walk: ["Walk.png", 12], attack1: ["Attack_1.png", 5], hurt: ["Hurt.png", 3], dead: ["Dead.png", 5] } }
+            { bg: "Background/Forest/Winter.png", id: 'Minotaur(Boss)', type: 'melee', hp: 150, atk: 40, cd: 2, folder: "In_Forest/Minotaur(Boss)/", anims: { idle: ["Idle.png", 10], walk: ["Walk.png", 12], attack1: ["Attack_1.png", 5], hurt: ["Hurt.png", 3], dead: ["Dead.png", 5] } }
         ]
     },
     'Graveyard': {

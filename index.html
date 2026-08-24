@@ -30,33 +30,89 @@
       <p class="tutorial-eyebrow">พร้อมลุยหรือยัง?</p>
       <h2>วิธีเล่น Turn-based Fighter</h2>
       <p class="tutorial-sub">ออกท่าทางแก้ปวดเมื่อย (ค้าง 1 วิ) หรือกดปุ่ม (1 เทิร์น 5 วิ / QTE 3 วิ)</p>
+
+      <!-- 🔴 ปรับคำอธิบายให้เป็นกลาง -->
       <div class="tutorial-steps">
         <div class="tutorial-step">
           <div class="tutorial-step-text">
             <h3><img src="Icon/Attack_Icon.png" class="inline-icon"> 1. โจมตี (Attack)</h3>
-            <p>ทำดาเมจ 20 ได้เกจไม้ตาย 1 </p>
+            <p>ทำความเสียหายแก่ศัตรู และสะสมเกจท่าไม้ตาย</p>
           </div>
         </div>
         <div class="tutorial-step">
           <div class="tutorial-step-text">
             <h3><img src="Icon/Guard_Icon.png" class="inline-icon"> 2. ป้องกัน (Guard)</h3>
-            <p>ลดดาเมจ 10 ได้เกจไม้ตาย 1</p>
+            <p>ลดความเสียหายที่ได้รับ และสะสมเกจท่าไม้ตาย</p>
           </div>
         </div>
         <div class="tutorial-step">
           <div class="tutorial-step-text">
             <h3><img src="Icon/QTE_Icon.png" class="inline-icon"> 3. Quick-Time Event (QTE)</h3>
-            <p>สุ่มเกิด 20% ป้องกันทันสวนกลับ 30 ดาเมจ พลาดโดน 2 เท่า!</p>
+            <p>สุ่มเกิดเมื่อศัตรูโจมตี ป้องกันให้ทันเพื่อสวนกลับ! หากพลาดจะโดนความเสียหายรุนแรง</p>
           </div>
         </div>
         <div class="tutorial-step">
           <div class="tutorial-step-text">
             <h3><img src="Icon/Ult_Icon.png" class="inline-icon"> 4. ท่าไม้ตาย (Ultimate)</h3>
-            <p>เกจครบ 4 ทำดาเมจ 50</p>
+            <p>เมื่อสะสมเกจครบตามที่กำหนด สามารถปลดปล่อยสกิลพิเศษหรือท่าโจมตีรุนแรงได้</p>
           </div>
         </div>
       </div>
-      <div class="tutorial-actions"><button class="btn-primary" type="button" id="tutorialNextBtn">ถัดไป</button></div>
+      <div class="tutorial-actions">
+        <button class="btn-primary" type="button" id="tutorialNextBtn">ถัดไป</button>
+        <p style="font-family: var(--font-body); font-size: 13px; color: #888; text-align: center; margin-top: 14px;">
+          (หรือกด Spacebar เพื่อข้ามการใช้กล้อง / เล่นด้วยปุ่มกด)</p>
+      </div>
+    </div>
+  </div>
+  <!-- 1.5 Calibration Overlay (หน้าทดสอบกล้อง AI) -->
+  <div id="calibrationOverlay" class="tutorial-overlay" style="display: none; opacity: 0;">
+    <div class="tutorial-card" style="text-align: center; max-width: 600px;">
+      <p class="tutorial-eyebrow" style="color: #FFB703;">ระบบสอนการเล่น</p>
+      <h2>ทดสอบการออกท่าทาง</h2>
+      <p class="tutorial-sub">ทำท่าทางหน้ากล้องให้ถูกต้องเพื่อไปยังหน้าถัดไป</p>
+
+      <!-- 🔴 จุดที่หายไป: กล่องรับกล้อง AI สำหรับหน้าทดสอบ (เอากลับมาแล้ว!) -->
+      <div id="calibCameraContainer"
+        style="width: 220px; height: 220px; margin: 0 auto 20px; border: 3px solid var(--line); background: var(--surface); border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left;">
+        <!-- 1. ท่าโจมตี (Attack) -->
+        <div id="checkAttack" class="tutorial-step" style="opacity: 0.5; transition: all 0.3s; padding: 12px;">
+          <h3
+            style="margin:0; width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span><img src="Icon/Attack_Icon.png" class="inline-icon"> 1. ท่าโจมตี (เหยียดเเขนตรงขวางลำตัว
+              ยกแขนอีกข้างขึ้นมาไขว้)</span>
+            <span class="status-icon" style="font-size: 16px;">❌</span>
+          </h3>
+        </div>
+
+        <!-- 2. ท่าป้องกัน (Guard) -->
+        <div id="checkGuard" class="tutorial-step" style="opacity: 0.5; transition: all 0.3s; padding: 12px;">
+          <h3
+            style="margin:0; width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span><img src="Icon/Guard_Icon.png" class="inline-icon"> 2. ท่าป้องกัน
+              (ประสานมือและเหยียดมาข้างหน้า)</span>
+            <span class="status-icon" style="font-size: 16px;">❌</span>
+          </h3>
+        </div>
+
+        <!-- 3. ท่าไม้ตาย (Ultimate) -->
+        <div id="checkUlt" class="tutorial-step" style="opacity: 0.5; transition: all 0.3s; padding: 12px;">
+          <h3
+            style="margin:0; width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span><img src="Icon/Ult_Icon.png" class="inline-icon"> 3. ท่าไม้ตาย (ประสานมือและเหยียดขึ้นข้างบน)</span>
+            <span class="status-icon" style="font-size: 16px;">❌</span>
+          </h3>
+        </div>
+      </div>
+
+      <div class="tutorial-actions">
+        <button class="btn-primary" type="button" id="calibNextBtn"
+          style="display: none; background: #2ECC71;">ผ่านแล้ว!
+          ไปเลือกตัวละคร</button>
+      </div>
     </div>
   </div>
 
@@ -65,21 +121,32 @@
     <div class="tutorial-card" style="text-align: center; max-width: 680px;">
       <p class="tutorial-eyebrow">เลือกนักสู้ของคุณ</p>
       <h2>Character Select</h2>
-      <div class="char-list" id="charList" style="gap: 16px; display: flex; justify-content: center; flex-wrap: wrap;">
-        <div class="char-card selected" data-char="Samurai" style="padding: 24px 16px; width: 140px;">
-          <h3>Samurai</h3>
+
+      <!-- 🔴 ใส่ระดับความยากใต้ชื่อตัวละคร -->
+      <div class="char-list" id="charList" style="gap: 12px; display: flex; justify-content: center; flex-wrap: wrap;">
+        <div class="char-card selected" data-char="Samurai" style="padding: 16px 8px; width: 130px;">
+          <h3>Samurai<br><span style="font-size: 10px; color: #2ECC71;">(Easy)</span></h3>
         </div>
-        <div class="char-card" data-char="Fighter" style="padding: 24px 16px; width: 140px;">
-          <h3>Fighter</h3>
+        <div class="char-card" data-char="Fighter" style="padding: 16px 8px; width: 130px;">
+          <h3>Fighter<br><span style="font-size: 10px; color: #F39C12;">(Normal)</span></h3>
         </div>
-        <div class="char-card" data-char="Knight" style="padding: 24px 16px; width: 140px;">
-          <h3>Knight</h3>
+        <div class="char-card" data-char="Knight" style="padding: 16px 8px; width: 130px;">
+          <h3>Knight<br><span style="font-size: 10px; color: #F39C12;">(Normal)</span></h3>
         </div>
-        <div class="char-card" data-char="Wizard" style="padding: 24px 16px; width: 140px;">
-          <h3>Battle Mage</h3>
+        <div class="char-card" data-char="Wizard" style="padding: 16px 8px; width: 130px;">
+          <h3>Battle Mage<br><span style="font-size: 10px; color: #E63946;">(Hard)</span></h3>
         </div>
       </div>
-      <div class="tutorial-actions"><button class="btn-primary" type="button" id="toMapBtn">เลือกลุยด่าน</button></div>
+
+      <!-- 🔴 แผงแสดงข้อมูลสถานะและสกิลตัวละคร -->
+      <div id="charInfoPanel"
+        style="background: var(--surface); border: 3px solid var(--line); padding: 16px; text-align: left; margin-bottom: 20px; font-family: var(--font-body); font-size: 13px; line-height: 1.6;">
+        <!-- ข้อความจะถูกเขียนอัตโนมัติด้วย JavaScript -->
+      </div>
+
+      <div class="tutorial-actions">
+        <button class="btn-primary" type="button" id="toMapBtn">ยืนยันนักสู้ และลุยด่าน</button>
+      </div>
     </div>
   </div>
 
@@ -87,9 +154,8 @@
   <div id="mapSelectOverlay" class="tutorial-overlay" style="display: none; opacity: 0;">
     <div class="tutorial-card" style="text-align: center; max-width: 500px;">
       <p class="tutorial-eyebrow" style="color: #E63946;">โลกแห่งการต่อสู้</p>
-      <h2>เลือกชุดด่าน (Map Select)</h2>
+      <h2>เลือกด่าน (Map Select)</h2>
 
-      <!-- 🔴 ปรับฟอนต์ให้เป็น Pixel และจัดบรรทัดใหม่ -->
       <div id="badgeContainer"
         style="font-family: var(--font-pixel); font-size: 14px; margin-bottom: 20px; color: var(--text); line-height: 1.5;">
         เหรียญตรา: </div>
@@ -127,7 +193,6 @@
         </div>
       </div>
       <div class="controls">
-        <!-- 🔴 เปลี่ยนปุ่มเสียงเป็นรูปภาพจากโฟลเดอร์ Sound_Icon -->
         <div class="vol-controls">
           <button type="button" class="vol-btn" onclick="bgmVolumeDown()" title="ลดเสียง">
             <img src="Icon/Sound_Icon/Minus_Icon.png" class="inline-icon" style="margin: 0;">
@@ -140,85 +205,131 @@
             <img src="Icon/Sound_Icon/Sound_Icon.png" class="inline-icon" id="muteIconImg" style="margin: 0;">
           </button>
         </div>
-
         <button id="startBtn" type="button" disabled>รอเปิดกล้อง</button>
         <button type="button" onclick="location.reload()">กลับหน้าแรก</button>
       </div>
+    </div>
 
-      <div class="hud">
-        <div class="panel">
+    <!-- 🔴 โครงสร้าง HUD แบบใหม่ (เกมขยายเต็มจออยู่บน / กล้อง+สถานะอยู่ล่าง) -->
+    <div class="hud"
+      style="max-width: 1080px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- ========================================== -->
+      <!-- 🟢 โซนบน: จอเกมทั้งหมด (ขยายกว้างสุดขอบ) -->
+      <!-- ========================================== -->
+      <div class="panel game-panel"
+        style="width: 100%; display: flex; flex-direction: column; padding: clamp(16px, 4vw, 24px);">
+        <p class="panel-label" id="currentMapNameUI" style="display:none;">Battle Arena</p>
+
+        <div class="game-status-row"
+          style="flex-direction: column; align-items: stretch; gap: 0px; margin-bottom: 16px;">
+          <h2 id="gameStatus" style="display:none;">เตรียมตัว...</h2>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <p id="gameScore"
+              style="background: transparent; border: none; width: 100%; padding: 0px; box-shadow: none;">HP: 100 | Ult:
+              0/4</p>
+          </div>
+        </div>
+
+        <!-- จอเกม ขยายเต็มพื้นที่ 100% -->
+        <div class="game-canvas-wrap"
+          style="margin-bottom: 20px; border: 4px solid var(--line); border-radius: 4px; box-shadow: 4px 4px 0 0 var(--line); width: 100%;">
+          <canvas id="gameCanvas" width="600" height="300" style="width: 100%; height: auto; display: block;"></canvas>
+        </div>
+
+        <div id="combatLogUI" class="combat-log-ui"
+          style="min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 15px; margin-bottom: 20px; background: var(--surface); border: 3px solid var(--line); padding: 8px; font-weight: bold;">
+          รอเริ่มเกม...</div>
+
+        <!-- ปุ่มกดแมนนวลแนวนอน (ยืดเต็ม) -->
+        <div class="manual-controls"
+          style="display: flex; flex-direction: row; justify-content: center; gap: 16px; flex-wrap: wrap; width: 100%;">
+          <button class="btn-action"
+            style="flex: 1; min-width: 120px; padding: 14px; display:flex; justify-content:center; align-items:center; gap:8px;"
+            onclick="manualAction('attack')">
+            <img src="Icon/Attack_Icon.png" class="inline-icon"> โจมตี
+          </button>
+          <button class="btn-action"
+            style="flex: 1; min-width: 120px; padding: 14px; display:flex; justify-content:center; align-items:center; gap:8px;"
+            onclick="manualAction('guard')">
+            <img src="Icon/Guard_Icon.png" class="inline-icon"> ป้องกัน
+          </button>
+          <button class="btn-action"
+            style="flex: 1; min-width: 120px; padding: 14px; display:flex; justify-content:center; align-items:center; gap:8px;"
+            onclick="manualAction('ultimate')">
+            <img src="Icon/Ult_Icon.png" class="inline-icon"> ไม้ตาย
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 🔴 โซนล่าง: กล้อง AI (ซ้าย) + หลอดสถานะ (ขวา) -->
+      <!-- ========================================== -->
+      <div class="ai-zone"
+        style="display: flex; flex-direction: row; gap: 24px; align-items: stretch; flex-wrap: wrap; width: 100%;">
+
+        <!-- กล้อง AI (ซ้าย) ขยายสมดุล -->
+        <div id="aiZoneLeftPanel" class="panel"
+          style="flex: 1; min-width: 300px; display: flex; flex-direction: column;">
           <p class="panel-label"><span id="liveDot" class="live-dot"></span>Motion Tracking</p>
-          <div id="cameraWrap" class="camera-wrap"><canvas id="cameraCanvas" width="400" height="400"></canvas>
+          <div id="cameraWrap" class="camera-wrap"
+            style="width: 100%; aspect-ratio: 1/1; margin: auto 0; border: 3px solid var(--line);">
+            <canvas id="cameraCanvas" width="400" height="400"></canvas>
             <div class="camera-placeholder">กำลังโหลดกล้อง...</div>
           </div>
-          <div class="pose-readout">
-            <p id="result">ท่าที่จับได้: -</p>
-            <p id="confidence">-</p>
+        </div>
+
+        <!-- หลอดสถานะเปอร์เซ็นต์ (ขวา) ขยายสมดุล -->
+        <div class="panel"
+          style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+            <p id="result"
+              style="font-family: var(--font-pixel); font-size: clamp(14px, 3.5vw, 18px); margin: 0; color: var(--accent-live);">
+              ท่าที่จับได้: -</p>
+            <p id="confidence"
+              style="font-family: var(--font-mono); font-size: 15px; color: var(--text-dim); margin: 0;">-</p>
           </div>
-          <div id="action">สถานะ: รอเปิดกล้อง</div>
-          <div class="class-scores">
+          <div id="action"
+            style="font-family: var(--font-body); font-size: 15px; color: var(--text-dim); margin-top: 4px; margin-bottom: 32px; font-weight: 600;">
+            สถานะ: รอเปิดกล้อง</div>
+
+          <div class="class-scores" style="display: flex; flex-direction: column; gap: 20px; margin: 0;">
             <div class="class-row">
-              <div class="class-row-top"><span id="class1">-</span></div>
-              <div class="class-bar-track">
+              <div class="class-row-top" style="font-size: 13px;"><span id="class1">-</span></div>
+              <div class="class-bar-track" style="height: 18px;">
                 <div class="class-bar-fill" data-bar="1"></div>
               </div>
             </div>
             <div class="class-row">
-              <div class="class-row-top"><span id="class2">-</span></div>
-              <div class="class-bar-track">
+              <div class="class-row-top" style="font-size: 13px;"><span id="class2">-</span></div>
+              <div class="class-bar-track" style="height: 18px;">
                 <div class="class-bar-fill" data-bar="2"></div>
               </div>
             </div>
             <div class="class-row">
-              <div class="class-row-top"><span id="class3">-</span></div>
-              <div class="class-bar-track">
+              <div class="class-row-top" style="font-size: 13px;"><span id="class3">-</span></div>
+              <div class="class-bar-track" style="height: 18px;">
                 <div class="class-bar-fill" data-bar="3"></div>
               </div>
             </div>
             <div class="class-row">
-              <div class="class-row-top"><span id="class4">-</span></div>
-              <div class="class-bar-track">
+              <div class="class-row-top" style="font-size: 13px;"><span id="class4">-</span></div>
+              <div class="class-bar-track" style="height: 18px;">
                 <div class="class-bar-fill" data-bar="4"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="panel game-panel">
-          <p class="panel-label" id="currentMapNameUI" style="display:none;">Battle Arena</p>
-          <div class="game-status-row" style="flex-direction: column; align-items: stretch; gap: 0px;">
-            <h2 id="gameStatus" style="display:none;">เตรียมตัว...</h2>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <p id="gameScore"
-                style="background: transparent; border: none; width: 100%; padding: 0px; box-shadow: none;">HP: 100 |
-                Ult:
-                0/4</p>
-            </div>
-          </div>
-
-          <div class="game-canvas-wrap"><canvas id="gameCanvas" width="600" height="300"></canvas></div>
-          <div id="combatLogUI" class="combat-log-ui"
-            style="min-height: 40px; display: flex; align-items: center; justify-content: center;">รอเริ่มเกม...</div>
-
-          <div class="manual-controls">
-            <button class="btn-action" onclick="manualAction('attack')"><img src="Icon/Attack_Icon.png"
-                class="inline-icon"> โจมตี</button>
-            <button class="btn-action" onclick="manualAction('guard')"><img src="Icon/Guard_Icon.png"
-                class="inline-icon">
-              ป้องกัน</button>
-            <button class="btn-action" onclick="manualAction('ultimate')"><img src="Icon/Ult_Icon.png"
-                class="inline-icon"> ไม้ตาย</button>
-          </div>
-        </div>
       </div>
     </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.3/dist/teachablemachine-pose.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8.3/dist/teachablemachine-pose.min.js"></script>
 
-    <div id="ytplayer" style="display: none; pointer-events: none;"></div>
-
-    <script type="module" src="main.js"></script>
+  <div id="ytplayer" style="display: none; pointer-events: none;"></div>
+  <script type="module" src="main.js"></script>
 
 </body>
 

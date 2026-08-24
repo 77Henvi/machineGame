@@ -1,5 +1,5 @@
 // ===============================
-// game.js - เอนจิ้นระบบต่อสู้และการวาดกราฟิก
+// game.js - เอนจิ้นระบบต่อสู้และการวาดกราฟิก (ยกเครื่องใหม่)
 // ===============================
 import { CHAR_CONFIG, FILE_NAMES, MAP_DATA, EFFECT_CONFIG, GAME_SETTINGS } from './config.js';
 import { cameraState } from './camera.js';
@@ -20,7 +20,12 @@ let currentMapName = '';
 let currentRoomIdx = 0;
 export let sessionClearedMaps = [];
 
-let player = { name: '', baseX: 120, xOffset: 0, hp: 100, maxHp: 100, ultGauge: 0, isDefending: false, anim: 'idle', frame: 0, tick: 0, animFinished: false, debuffTurn: 0, assets: {} };
+// 🔴 อัปเดตตัวแปรผู้เล่น ให้รองรับ MaxUlt, โล่ และสแตคต่างๆ
+let player = {
+    name: '', baseX: 120, xOffset: 0, hp: 100, maxHp: 100, ultGauge: 0, maxUlt: 4,
+    isDefending: false, anim: 'idle', frame: 0, tick: 0, animFinished: false,
+    debuffTurn: 0, shield: 0, shieldTurn: 0, fighterStacks: 0, assets: {}
+};
 let bot = { id: '', config: null, baseX: 480, xOffset: 0, hp: 100, maxHp: 100, isDefending: false, anim: 'idle', frame: 0, tick: 0, animFinished: false, turnCount: 0, cd: 0, phase2: false, assets: {} };
 
 let activeAction = null;
@@ -30,7 +35,6 @@ let projectiles = [];
 let bgImage = new Image();
 let effectAssets = {};
 
-// 🔴 โหลด QTE Icon เตรียมวาด
 let qteIconImg = new Image();
 qteIconImg.src = "Icon/QTE_Icon.png";
 
@@ -73,6 +77,13 @@ export function resizeGameCanvas() {
     drawGame();
 }
 
+function resetPlayerStats() {
+    if (player.name === 'Samurai') { player.maxHp = 100; player.maxUlt = 3; }
+    else if (player.name === 'Fighter') { player.maxHp = 100; player.maxUlt = 4; }
+    else if (player.name === 'Knight') { player.maxHp = 150; player.maxUlt = 2; }
+    else if (player.name === 'Wizard') { player.maxHp = 50; player.maxUlt = 6; }
+}
+
 export function initGameEngine(playerName, mapName) {
     currentMapName = mapName;
     currentRoomIdx = 0;
@@ -103,29 +114,30 @@ export function renderManualControls() {
 
         let btns = '';
         if (nextMap) {
-            btns += `<button class="btn-action" style="background:#2ECC71; color:#fff;" onclick="goToNextMap('${nextMap}')">➡️ ลุยด่านต่อไป (${nextMap})</button>`;
+            btns += `<button class="btn-action" style="flex: 1; min-width: 150px; padding: 14px; background:#2ECC71; color:#fff; display:flex; justify-content:center; align-items:center;" onclick="goToNextMap('${nextMap}')">➡️ ลุยด่านต่อไป (${nextMap})</button>`;
         }
-        btns += `<button class="btn-action" style="background:#E63946; color:#fff;" onclick="showSummary()">🛑 หยุดพัก</button>`;
+        btns += `<button class="btn-action" style="flex: 1; min-width: 150px; padding: 14px; background:#E63946; color:#fff; display:flex; justify-content:center; align-items:center;" onclick="showSummary()">🛑 หยุดพัก</button>`;
         container.innerHTML = btns;
     }
     else if (gameState === 'SUMMARY' || gameState === 'GAME_OVER') {
-        container.innerHTML = `<button class="btn-action" style="background:#111; color:#fff;" onclick="location.reload()">🏠 กลับหน้าแรก</button>`;
+        container.innerHTML = `<button class="btn-action" style="flex: 1; min-width: 200px; padding: 14px; background:#111; color:#fff; display:flex; justify-content:center; align-items:center;" onclick="location.reload()">🏠 กลับหน้าแรก</button>`;
     }
     else {
-        // 🔴 เปลี่ยน Emoji ในปุ่มบังคับให้เรียกใช้ภาพ Icon
         container.innerHTML = `
-      <button class="btn-action" onclick="manualAction('attack')"><img src="Icon/Attack_Icon.png" class="inline-icon"> โจมตี</button>
-      <button class="btn-action" onclick="manualAction('guard')"><img src="Icon/Guard_Icon.png" class="inline-icon"> ป้องกัน</button>
-      <button class="btn-action" onclick="manualAction('ultimate')"><img src="Icon/Ult_Icon.png" class="inline-icon"> ไม้ตาย</button>
+      <button class="btn-action" style="flex: 1; min-width: 120px; padding: 14px; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="manualAction('attack')"><img src="Icon/Attack_Icon.png" class="inline-icon"> โจมตี</button>
+      <button class="btn-action" style="flex: 1; min-width: 120px; padding: 14px; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="manualAction('guard')"><img src="Icon/Guard_Icon.png" class="inline-icon"> ป้องกัน</button>
+      <button class="btn-action" style="flex: 1; min-width: 120px; padding: 14px; display:flex; justify-content:center; align-items:center; gap:8px;" onclick="manualAction('ultimate')"><img src="Icon/Ult_Icon.png" class="inline-icon"> ไม้ตาย</button>
     `;
     }
 }
 
 export function goToNextMap(nextMapName) {
-    player.maxHp = 100;
-    player.hp = 100;
+    player.hp = Math.min(player.maxHp, player.hp + 30);
     player.ultGauge = 0;
     player.debuffTurn = 0;
+    player.shield = 0;
+    player.shieldTurn = 0;
+    player.fighterStacks = 0;
     currentMapName = nextMapName;
     loadRoom(0);
 }
@@ -137,7 +149,13 @@ export function showSummary() {
 }
 
 function startGame() {
-    player.hp = 100; player.maxHp = 100; player.ultGauge = 0; player.debuffTurn = 0;
+    resetPlayerStats();
+    player.hp = player.maxHp;
+    player.ultGauge = 0;
+    player.debuffTurn = 0;
+    player.shield = 0;
+    player.shieldTurn = 0;
+    player.fighterStacks = 0;
     loadRoom(0);
 }
 
@@ -177,22 +195,35 @@ function startPlayerTurn() {
     if (checkGameOver()) return;
     gameState = 'PLAYER_TURN'; turnTimer = GAME_SETTINGS.PLAYER_TURN_TIME; player.isDefending = false;
     setAnim(player, 'idle');
-
-    if (player.debuffTurn > 0) {
-        player.debuffTurn--;
-        if (player.debuffTurn === 0) { player.hp = Math.min(player.maxHp, player.hp + 10); combatLog = "ล้างคำสาปแล้ว! ฟื้นฟู 10 HP"; }
-    } else { combatLog = "เทิร์นของคุณ! โจมตี / ป้องกัน / ไม้ตาย"; }
+    combatLog = "เทิร์นของคุณ! โจมตี / ป้องกัน / ไม้ตาย";
 }
 
 function startBotTurn() {
     if (checkGameOver()) return;
     gameState = 'BOT_TURN'; turnTimer = 1.0; bot.isDefending = false;
-    setAnim(bot, 'idle'); combatLog = "ตาของศัตรู...";
+    setAnim(bot, 'idle');
+
+    let msg = "ตาของศัตรู...";
+
+    if (player.debuffTurn > 0) {
+        player.debuffTurn--;
+        if (player.debuffTurn === 0) {
+            msg = "ล้างคำสาปแล้ว! " + msg;
+        }
+    }
+    if (player.shieldTurn > 0) {
+        player.shieldTurn--;
+        if (player.shieldTurn === 0 && player.shield > 0) {
+            player.shield = 0;
+            player.ultGauge = Math.min(player.maxUlt, player.ultGauge + 3);
+            msg = "โล่เวทย์หมดอายุ (ได้รับ 3 Ult!) " + msg;
+        }
+    }
+    combatLog = msg;
 }
 
 function triggerQTE() {
     gameState = 'QTE_EVENT'; turnTimer = GAME_SETTINGS.QTE_TIME; setAnim(bot, 'idle');
-    // 🔴 เปลี่ยนข้อความใน Log ให้แสดงภาพไอคอน QTE ด้วย
     combatLog = `<img src="Icon/QTE_Icon.png" class="inline-icon"> QTE! ป้องกันด่วน!! (มีเวลา 3 วิ)`;
 }
 
@@ -252,13 +283,45 @@ function startAttackSequence(attacker, defender, actionType, dmg, msg, nextState
 }
 
 function applyDamageAndEffect(att, def, type, dmg) {
-    def.hp -= dmg;
     let effType = 'hit';
     let isMelee = (att === player) ? CHAR_CONFIG[att.name].type === 'melee' : att.config.type === 'melee';
+    let isParry = false;
+    let parryDmg = 0;
 
-    if (def === player && player.isDefending && type === 'attack') {
-        setAnim(def, 'defend'); effType = 'block';
+    if (def === player && type === 'attack') {
+        let dmgToHp = dmg;
+
+        if (player.name === 'Wizard' && player.shield > 0) {
+            if (dmgToHp >= player.shield) {
+                dmgToHp -= player.shield;
+                player.shield = 0;
+                player.ultGauge = Math.min(player.maxUlt, player.ultGauge + 3);
+            } else {
+                player.shield -= dmgToHp;
+                dmgToHp = 0;
+            }
+        }
+
+        def.hp -= dmgToHp;
+
+        if (player.name === 'Fighter' && dmgToHp > 0) {
+            player.fighterStacks = Math.min(5, player.fighterStacks + 1);
+        }
+
+        if (player.name === 'Knight' && player.isDefending && dmgToHp === 0 && type === 'attack') {
+            isParry = true;
+            parryDmg = 35 + 10;
+            att.hp -= parryDmg;
+        }
+
+        if (player.isDefending) {
+            setAnim(def, 'defend'); effType = 'block';
+        } else {
+            setAnim(def, 'hurt');
+            if (isMelee) effType = 'slash';
+        }
     } else {
+        def.hp -= dmg;
         setAnim(def, 'hurt');
         if (isMelee) effType = 'slash';
     }
@@ -267,6 +330,12 @@ function applyDamageAndEffect(att, def, type, dmg) {
         att.hp = Math.min(att.maxHp, att.hp + att.config.lifesteal);
     }
     effects.push({ x: def.baseX, y: 180, type: effType, frame: 0, tick: 0 });
+
+    if (isParry) {
+        combatLog = `Knight ป้องกันสมบูรณ์แบบ! ออโต้ปัดป้องทำดาเมจ ${parryDmg}!`;
+        effects.push({ x: att.baseX, y: 180, type: 'slash', frame: 0, tick: 0 });
+        setAnim(att, 'hurt');
+    }
 }
 
 function finishActionSequence() {
@@ -279,8 +348,13 @@ function processBotQueue() {
     if (botAttackQueue.length > 0) {
         let nextAtk = botAttackQueue.shift();
         if (nextAtk.isQte) {
-            activeAction = { attacker: bot, defender: player, dmg: nextAtk.dmg, msg: nextAtk.msg, next: nextAtk.nextFunc, actionType: 'attack', anim: 'attack1', phase: 'attacking' };
-            triggerQTE();
+            if (player.name === 'Knight') {
+                activeAction = { attacker: player, defender: bot, dmg: 35, msg: "Knight AUTO QTE! ปัดป้องอัตโนมัติ 35 ดาเมจ!", next: nextAtk.nextFunc, actionType: 'attack', anim: 'attack1' };
+                startAttackSequence(player, bot, 'attack', 35, activeAction.msg, nextAtk.nextFunc);
+            } else {
+                activeAction = { attacker: bot, defender: player, dmg: nextAtk.dmg, msg: nextAtk.msg, next: nextAtk.nextFunc, actionType: 'attack', anim: 'attack1', phase: 'attacking' };
+                triggerQTE();
+            }
         } else {
             startAttackSequence(bot, player, 'attack', nextAtk.dmg, nextAtk.msg, nextAtk.nextFunc);
         }
@@ -289,25 +363,94 @@ function processBotQueue() {
     }
 }
 
-function getPlayerDmg() {
-    let d = 20;
-    if (player.debuffTurn === 2) d -= 10;
-    else if (player.debuffTurn === 1) d -= 5;
-    return Math.max(0, d);
-}
-
 function executePlayerAction(actionType) {
     if (actionType === 'attack') {
-        let dmg = getPlayerDmg();
-        player.ultGauge = Math.min(4, player.ultGauge + 1);
-        startAttackSequence(player, bot, 'attack', dmg, `คุณโจมตีทำดาเมจ ${dmg}!`, startBotTurn);
-    } else if (actionType === 'guard' || actionType === 'defend') {
-        player.isDefending = true; setAnim(player, 'defend'); player.ultGauge = Math.min(4, player.ultGauge + 1);
-        showResult("คุณตั้งการ์ดป้องกัน! (-10 ดาเมจเทิร์นหน้า)", startBotTurn);
-    } else if (actionType === 'ultimate') {
-        if (player.ultGauge >= 4) {
-            player.ultGauge = 0; startAttackSequence(player, bot, 'ultimate', 50, "ULTIMATE! ทำดาเมจมหาศาล 50!", startBotTurn);
-        } else { poseHoldTime = 0; }
+
+        // 🔴 แยกระบบโจมตีของซามูไรออกมาเพื่อทำแอนิเมชันแยก 2 รอบอย่างชัดเจน
+        if (player.name === 'Samurai') {
+            let dmg1 = 25; let heal1 = 5;
+            if (player.debuffTurn > 0) dmg1 = Math.max(0, dmg1 - 10);
+
+            player.hp = Math.min(player.maxHp, player.hp + heal1);
+            player.ultGauge = Math.min(player.maxUlt, player.ultGauge + 1);
+
+            if (Math.random() < 0.70) {
+                // ติด Passive โจมตีเบิ้ล
+                let dmg2 = 25; let heal2 = 5;
+                if (player.debuffTurn > 0) dmg2 = Math.max(0, dmg2 - 10);
+
+                let msg1 = `Samurai โจมตีดาบที่ 1! ทำดาเมจ ${dmg1} ฟื้นฟู ${heal1} HP`;
+                let msg2 = `Samurai ฟันต่อเนื่องดาบที่ 2! ทำดาเมจ ${dmg2} ฟื้นฟู ${heal2} HP`;
+
+                // 🔴 สร้างฟังก์ชันที่จะถูกเรียกเมื่อดาบแรกฟันจบ (Function Chaining)
+                let secondAttackFunc = () => {
+                    // ป้องกันบั๊กกรณีบอทตายไปแล้วตั้งแต่ดาบแรก
+                    if (bot.hp <= 0) {
+                        startBotTurn();
+                        return;
+                    }
+                    player.hp = Math.min(player.maxHp, player.hp + heal2);
+                    startAttackSequence(player, bot, 'attack', dmg2, msg2, startBotTurn);
+                };
+
+                // ส่งคำสั่งฟันดาบที่ 1 และตั้งคิวให้ดาบที่ 2 รอทำงานต่อ
+                startAttackSequence(player, bot, 'attack', dmg1, msg1, secondAttackFunc);
+            } else {
+                // ไม่ติด Passive โจมตีปกติ
+                let msg = `Samurai โจมตีทำดาเมจ ${dmg1} ฟื้นฟู ${heal1} HP`;
+                startAttackSequence(player, bot, 'attack', dmg1, msg, startBotTurn);
+            }
+            return; // ข้ามโค้ดส่วนของตัวละครอื่นๆ ไปเลย
+        }
+
+        // 🔴 สำหรับตัวละครอื่นๆ
+        let dmg = 0; let heal = 0; let msg = "";
+
+        if (player.name === 'Fighter') {
+            dmg = 15 + (player.fighterStacks * 5);
+            msg = `Fighter ตะลุยแหลกทำดาเมจ ${dmg}! (บัฟตีแรง ${player.fighterStacks} ขั้น)`;
+        } else if (player.name === 'Knight') {
+            dmg = 10; msg = `Knight โจมตีทำดาเมจ ${dmg}!`;
+        } else if (player.name === 'Wizard') {
+            dmg = 15 + (player.shield > 0 ? 5 : 0);
+            msg = `Wizard ยิงเวทย์ทำดาเมจ ${dmg}!`;
+        }
+
+        if (player.debuffTurn > 0) dmg = Math.max(0, dmg - 10);
+
+        player.hp = Math.min(player.maxHp, player.hp + heal);
+        player.ultGauge = Math.min(player.maxUlt, player.ultGauge + 1);
+        startAttackSequence(player, bot, 'attack', dmg, msg, startBotTurn);
+    }
+    else if (actionType === 'guard' || actionType === 'defend') {
+        player.isDefending = true;
+        setAnim(player, 'defend');
+        player.ultGauge = Math.min(player.maxUlt, player.ultGauge + 1);
+
+        if (player.name === 'Wizard') {
+            player.shield = 30; player.shieldTurn = 3;
+            showResult("Wizard ร่ายโล่เวทย์ 30 HP (ป้องกัน 3 เทิร์น)!", startBotTurn);
+        } else {
+            showResult("คุณตั้งการ์ดป้องกัน! (ลดความเสียหายจากศัตรู)", startBotTurn);
+        }
+    }
+    else if (actionType === 'ultimate') {
+        if (player.ultGauge >= player.maxUlt) {
+            player.ultGauge = 0;
+            if (player.name === 'Samurai') {
+                startAttackSequence(player, bot, 'ultimate', 50, "ULTIMATE! เพลงดาบซามูไร 50 ดาเมจ!", startBotTurn);
+            } else if (player.name === 'Fighter') {
+                player.hp = Math.min(player.maxHp, player.hp + 20);
+                let ultDmg = 15 + (player.fighterStacks * 5);
+                startAttackSequence(player, bot, 'ultimate', ultDmg, `ULTIMATE! ทุบแหลก ${ultDmg} ดาเมจ ฟื้นฟู 20 HP!`, startBotTurn);
+            } else if (player.name === 'Knight') {
+                startAttackSequence(player, bot, 'ultimate', 30, "ULTIMATE! ดาบศักดิ์สิทธิ์ 30 ดาเมจ!", startBotTurn);
+            } else if (player.name === 'Wizard') {
+                startAttackSequence(player, bot, 'ultimate', 100, "ULTIMATE! มหาเวทย์ระเบิด 100 ดาเมจ!", startBotTurn);
+            }
+        } else {
+            poseHoldTime = 0;
+        }
     }
 }
 
@@ -317,7 +460,12 @@ function executeQTEAction(success) {
     activeAction = null;
 
     if (success) {
-        startAttackSequence(player, bot, 'attack', 30, "PERFECT PARRY! สวนกลับ 30 ดาเมจ!", nextState);
+        let qteDmg = 30;
+        if (player.name === 'Knight') qteDmg = 40;
+        else if (player.name === 'Wizard') qteDmg = 30 + (player.shield > 0 ? 20 : 0);
+        else if (player.name === 'Fighter') qteDmg = 30 + (player.fighterStacks * 5);
+
+        startAttackSequence(player, bot, 'attack', qteDmg, `PERFECT PARRY! สวนกลับ ${qteDmg} ดาเมจ!`, nextState);
     } else {
         startAttackSequence(bot, player, 'attack', failDmg, `พลาด! โดนสวนกลับรุนแรง ${failDmg} ดาเมจ`, nextState);
     }
@@ -334,7 +482,7 @@ function executeBotLogic() {
     if (bc.isQueen && bot.cd <= 0) {
         bot.cd = 3; player.debuffTurn = 2;
         setAnim(bot, 'ult');
-        showResult("Vampire Queen ร่ายคำสาป! พลังโจมตีคุณลดลง 2 เทิร์น", startPlayerTurn); return;
+        showResult("Vampire Queen ร่ายคำสาป! พลังโจมตีคุณลดลง", startPlayerTurn); return;
     }
     if (bc.isQueen) bot.cd--;
 
@@ -344,7 +492,17 @@ function executeBotLogic() {
     for (let i = 0; i < hits; i++) {
         let dmg = bc.atk || 20;
         if (bc.isQueen && i === 1) dmg = 10;
-        if (player.isDefending && !bc.unblockable) dmg -= 10;
+
+        if (player.isDefending && !bc.unblockable) {
+            if (player.name === 'Knight') dmg -= 20;
+            else if (player.name === 'Wizard') dmg -= 5;
+            else dmg -= 10;
+        }
+
+        if (player.name === 'Wizard' && player.shield > 0 && !bc.unblockable) {
+            dmg -= 5;
+        }
+
         dmg = Math.max(0, dmg);
 
         let qte = Math.random() < 0.20;
@@ -433,7 +591,8 @@ export function updateGame(timestamp) {
     if (gameState === 'ROOM_CLEAR') {
         player.xOffset += 200 * dt;
         if (player.xOffset > 600) {
-            player.maxHp += 10; player.hp = player.maxHp; loadRoom(currentRoomIdx + 1);
+            player.hp = Math.min(player.maxHp, player.hp + 30);
+            loadRoom(currentRoomIdx + 1);
         }
         return;
     }
@@ -485,7 +644,7 @@ export function updateGame(timestamp) {
     let p2Pct = Math.max(0, (p2Hp / bot.maxHp) * 100);
 
     let ultHTML = '';
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < player.maxUlt; i++) {
         ultHTML += `<span style="color: ${i < player.ultGauge ? '#FFC93C' : '#555'}; font-size: 16px; text-shadow: 1px 1px 0 #000;">●</span>`;
     }
 
@@ -495,17 +654,20 @@ export function updateGame(timestamp) {
     let turnText = "เตรียมตัว..."; let turnColor = "#111";
     if (gameState === 'PLAYER_TURN') { turnText = "Player Turn"; turnColor = "#2ECC71"; }
     else if (gameState === 'BOT_TURN') { turnText = "Enemy Turn"; turnColor = "#E63946"; }
-    // 🔴 นำ Icon เข้ามาใช้โชว์ UI บนสุดแทน ⚠️
     else if (gameState === 'QTE_EVENT') { turnText = `<img src="Icon/QTE_Icon.png" class="inline-icon"> QTE! ป้องกันด่วน!`; turnColor = "#E63946"; }
     else if (gameState === 'GAME_OVER') { turnText = "Game Over"; turnColor = "#111"; }
     else if (gameState === 'ROOM_CLEAR') { turnText = "Room Clear"; turnColor = "#FFC93C"; }
     else if (gameState === 'BOSS_CLEARED') { turnText = "Boss Defeated!"; turnColor = "#FFC93C"; }
     else if (gameState === 'SUMMARY') { turnText = "Summary"; turnColor = "#111"; }
 
+    let extraStats = "";
+    if (player.shield > 0) extraStats += `<span style="color:#8ECAE6; margin-left: 6px;">[Shield: ${player.shield}]</span>`;
+    if (player.fighterStacks > 0) extraStats += `<span style="color:#FF9F1C; margin-left: 6px;">[ATK UP x${player.fighterStacks}]</span>`;
+
     const uiHTML = `
     <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-family: var(--font-pixel), sans-serif; font-size: 12px; margin-top: 10px; margin-bottom: 10px; color: #111; min-height: 65px;">
       <div style="text-align: left; width: 35%;">
-        <div style="margin-bottom: 6px; font-weight: bold; font-size: 14px;">Player : ${p1Hp}</div>
+        <div style="margin-bottom: 6px; font-weight: bold; font-size: 14px;">Player : ${p1Hp}/${player.maxHp} ${extraStats}</div>
         <div style="width: 100%; height: 18px; background: #2C2C2C; border: 3px solid #111; box-shadow: 2px 2px 0 #000;">
           <div style="width: ${p1Pct}%; height: 100%; background: ${pColor}; transition: width 0.2s;"></div>
         </div>
@@ -580,7 +742,6 @@ export function drawGame() {
         if (gameState !== 'ROOM_CLEAR' || bot.hp > 0) {
             drawCharacter(gameCtx, bot, (bot.baseX + bot.xOffset) * scale, floorY, charScale, true);
 
-            // 🔴 วาด QTE Icon ลอยกระเด้งเหนือหัวศัตรู
             if (gameState === 'QTE_EVENT' && qteIconImg.complete && qteIconImg.width > 0) {
                 let qSize = 36 * scale;
                 let bounce = Math.sin(Date.now() / 150) * 8 * scale;
@@ -661,7 +822,6 @@ export function drawGame() {
 
     const logUI = document.getElementById("combatLogUI");
     if (logUI) {
-        // 🔴 แก้ไขให้ใช้ innerHTML เพื่อให้ tag img แสดงผลได้
         logUI.innerHTML = combatLog;
         logUI.style.minHeight = "40px"; logUI.style.display = "flex"; logUI.style.alignItems = "center"; logUI.style.justifyContent = "center";
         if (gameState === 'QTE_EVENT') logUI.classList.add('qte-alert'); else logUI.classList.remove('qte-alert');

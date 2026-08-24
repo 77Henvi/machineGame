@@ -1,5 +1,5 @@
 /* ============================================
-   นำไปวางทับไฟล์ style.css ของคุณได้เลยครับ
+   ไฟล์ style.css ฉบับสมบูรณ์ ล้างโค้ดซ้ำแล้ว
    ============================================ */
 :root {
   --bg: #2C2C2C;
@@ -54,6 +54,7 @@ svg {
   max-width: 100%;
 }
 
+/* --- Overlays --- */
 .tutorial-overlay {
   position: fixed;
   inset: 0;
@@ -127,32 +128,6 @@ svg {
   background: var(--surface);
 }
 
-.tutorial-step-icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border: 3px solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tutorial-step-icon.icon-a {
-  background: #FFC93C;
-}
-
-.tutorial-step-icon.icon-b {
-  background: #8ECAE6;
-}
-
-.tutorial-step-icon.icon-c {
-  background: #C5CAE9;
-}
-
-.tutorial-step-icon.icon-d {
-  background: #FF9F1C;
-}
-
 .tutorial-step-text h3 {
   font-family: var(--font-pixel);
   font-size: clamp(9px, 2.4vw, 11px);
@@ -171,12 +146,11 @@ svg {
   margin-top: 10px;
 }
 
-/* CSS สำหรับหน้าเลือกตัวละคร */
+/* --- Character & Map List --- */
 .char-list {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  /* ทำให้ปุ่มตัวละครปัดตกบรรทัดได้ถ้าจอเล็ก */
   gap: 16px;
   margin: 24px 0;
 }
@@ -199,14 +173,6 @@ svg {
   transform: translateY(-4px);
 }
 
-.char-preview img {
-  width: 250%;
-  object-fit: none;
-  object-position: left;
-  image-rendering: pixelated;
-  margin-left: 15%;
-}
-
 .char-card h3 {
   font-family: var(--font-pixel);
   font-size: 12px;
@@ -214,6 +180,42 @@ svg {
   margin: 0;
 }
 
+.btn-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: var(--font-pixel);
+  font-size: clamp(12px, 3vw, 16px);
+  font-weight: 600;
+  padding: 16px 20px;
+  cursor: pointer;
+  border: 4px solid var(--line);
+  color: #fff;
+  box-shadow: 4px 4px 0 0 var(--line);
+  transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
+  text-align: center;
+  width: 100%;
+}
+
+.btn-map img.inline-icon {
+  margin: 0;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.btn-map:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 0 var(--line);
+}
+
+.btn-map:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0 0 0 0 var(--line);
+}
+
+/* --- App Shell & Topbar --- */
 .app-shell {
   opacity: 0;
   transform: translateY(18px);
@@ -270,6 +272,7 @@ svg {
   align-items: center;
 }
 
+/* --- Buttons --- */
 button {
   font-family: var(--font-pixel);
   font-size: clamp(9px, 2.2vw, 11px);
@@ -309,18 +312,24 @@ button:disabled {
   color: #fff;
 }
 
-.hud {
-  max-width: 1080px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(280px, 400px) 1fr;
-  gap: clamp(14px, 3vw, 20px);
+.btn-action {
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: clamp(12px, 2.5vw, 15px);
+  border: 3px solid var(--line);
+  box-shadow: 4px 4px 0 0 var(--line);
 }
 
-@media (max-width: 860px) {
-  .hud {
-    grid-template-columns: 1fr;
-  }
+/* --- HUD Layout (New) --- */
+.hud {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  max-width: 1080px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
 }
 
 .panel {
@@ -339,6 +348,18 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* --- AI Zone --- */
+.ai-zone {
+  display: flex;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .ai-zone {
+    flex-direction: column;
+  }
 }
 
 .live-dot {
@@ -375,20 +396,18 @@ button:disabled {
 .camera-wrap {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 1/1;
   background: var(--surface);
-  border: 3px solid var(--line);
   image-rendering: pixelated;
 }
 
 .camera-wrap.tracking-live {
-  border-color: var(--accent-live);
-  box-shadow: 0 0 0 4px var(--accent-live-soft);
+  border-color: var(--accent-live) !important;
+  box-shadow: 0 0 0 4px var(--accent-live-soft) !important;
 }
 
 .camera-wrap.tracking-warn {
-  border-color: var(--accent-warn);
-  box-shadow: 0 0 0 4px var(--accent-warn-soft);
+  border-color: var(--accent-warn) !important;
+  box-shadow: 0 0 0 4px var(--accent-warn-soft) !important;
 }
 
 #cameraCanvas {
@@ -413,81 +432,8 @@ button:disabled {
   display: none;
 }
 
-.pose-readout {
-  margin-top: 14px;
-  display: flex;
-  justify-content: space-between;
-}
-
-#result {
-  font-family: var(--font-pixel);
-  font-size: clamp(11px, 2.8vw, 14px);
-  margin: 0;
-}
-
-#confidence {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-dim);
-  margin: 0;
-}
-
-#action {
-  font-family: var(--font-body);
-  font-size: 12.5px;
-  color: var(--text-dim);
-  margin-top: 8px;
-}
-
-.class-scores {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.class-row {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.class-row-top {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  color: var(--text-dim);
-}
-
-.class-bar-track {
-  height: 10px;
-  border: 2px solid var(--line);
-  background: var(--surface);
-}
-
-.class-bar-fill {
-  height: 100%;
-  width: 0%;
-  background: repeating-linear-gradient(90deg, var(--accent-live) 0px, var(--accent-live) 6px, #D62828 6px, #D62828 8px);
-  transition: width 0.2s steps(6);
-}
-
-.game-panel {
-  display: flex;
-  flex-direction: column;
-}
-
-.game-status-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-#gameStatus {
+/* --- Game Screen --- */
+.game-status-row h2 {
   font-family: var(--font-pixel);
   font-size: clamp(10px, 2.6vw, 13px);
   margin: 0;
@@ -505,7 +451,6 @@ button:disabled {
 
 .game-canvas-wrap {
   position: relative;
-  border: 3px solid var(--line);
   background: #000;
   overflow: hidden;
 }
@@ -517,20 +462,86 @@ button:disabled {
   image-rendering: pixelated;
 }
 
-.hint-bar {
-  max-width: 1080px;
-  margin: 20px auto 0;
+.combat-log-ui {
   text-align: center;
-  font-size: 12.5px;
-  color: var(--text-dim);
-  padding: 0 8px;
+  font-family: var(--font-pixel);
+  margin: 16px 0;
+  color: var(--text);
+  line-height: 1.6;
 }
 
-.hint-bar code {
+.combat-log-ui.qte-alert {
+  color: var(--accent-live);
+}
+
+/* --- Health Bars & Volume Controls --- */
+.class-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.class-row-top {
+  display: flex;
+  justify-content: space-between;
   font-family: var(--font-mono);
-  background: var(--surface);
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.class-bar-track {
   border: 2px solid var(--line);
-  padding: 2px 6px;
+  background: var(--surface);
+}
+
+.class-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: repeating-linear-gradient(90deg, var(--accent-live) 0px, var(--accent-live) 6px, #D62828 6px, #D62828 8px);
+  transition: width 0.2s steps(6);
+}
+
+.vol-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface-raised);
+  border: 3px solid var(--line);
+  padding: 4px 8px;
+  box-shadow: 4px 4px 0 0 var(--line);
+  margin-right: 8px;
+}
+
+.vol-controls span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  min-width: 36px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.vol-btn {
+  padding: 4px 6px;
+  font-size: 14px;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.vol-btn:hover:not(:disabled) {
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+
+.inline-icon {
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: text-bottom;
+  image-rendering: pixelated;
+  display: inline-block;
 }
 
 @media (max-width: 480px) {
@@ -607,145 +618,4 @@ button:disabled {
   75% {
     transform: translate(12px, 10px);
   }
-}
-
-/* ============================================
-   UI ใต้จอเกม (Combat Log & Manual Buttons)
-   ============================================ */
-
-/* ลบ hint-bar ของเก่าทิ้ง */
-.hint-bar {
-  display: none !important;
-}
-
-/* ข้อความอธิบายสถานะตรงจุดสีแดง */
-.combat-log-ui {
-  text-align: center;
-  font-family: var(--font-pixel);
-  font-size: clamp(10px, 2.4vw, 13px);
-  margin: 16px 0;
-  min-height: 20px;
-  color: var(--text);
-  line-height: 1.6;
-}
-
-/* สีแดงสั่นๆ เวลาติด QTE */
-.combat-log-ui.qte-alert {
-  color: var(--accent-live);
-}
-
-/* ปุ่มกดตรงจุดสีเขียว */
-.manual-controls {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.btn-action {
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: clamp(11px, 2.2vw, 14px);
-  padding: 12px 18px;
-  border: 3px solid var(--line);
-  box-shadow: 4px 4px 0 0 var(--line);
-  transition: all 0.1s;
-  cursor: pointer;
-}
-
-.btn-action:hover {
-  background: var(--accent-gold);
-  transform: translateY(-2px);
-  box-shadow: 4px 6px 0 0 var(--line);
-}
-
-.btn-action:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0 0 0 0 var(--line);
-}
-
-.btn-map {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-family: var(--font-pixel);
-  font-size: clamp(12px, 3vw, 16px);
-  font-weight: 600;
-  padding: 16px 20px;
-  cursor: pointer;
-  border: 4px solid var(--line);
-  color: #fff;
-  box-shadow: 4px 4px 0 0 var(--line);
-  transition: transform 0.08s, box-shadow 0.08s, filter 0.15s;
-  text-align: center;
-  width: 100%;
-}
-
-.btn-map img.inline-icon {
-  margin: 0;
-  width: 1.5em;
-  height: 1.5em;
-}
-
-.btn-map:hover {
-  filter: brightness(1.15);
-  transform: translateY(-2px);
-  box-shadow: 6px 6px 0 0 var(--line);
-}
-
-.btn-map:active {
-  transform: translate(4px, 4px);
-  box-shadow: 0 0 0 0 var(--line);
-}
-
-.inline-icon {
-  width: 1.2em;
-  height: 1.2em;
-  vertical-align: text-bottom;
-  image-rendering: pixelated;
-  display: inline-block;
-}
-
-.vol-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface-raised);
-  border: 3px solid var(--line);
-  padding: 4px 8px;
-  box-shadow: 4px 4px 0 0 var(--line);
-  margin-right: 8px;
-  /* เว้นระยะห่างจากปุ่มกล้องนิดหน่อย */
-}
-
-.vol-controls span {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text);
-  min-width: 36px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.vol-btn {
-  padding: 4px 6px;
-  font-size: 14px;
-  border: none;
-  box-shadow: none;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.vol-btn:hover:not(:disabled) {
-  background: var(--surface);
-  transform: translateY(-1px);
-}
-
-.vol-btn:active:not(:disabled) {
-  transform: translateY(1px);
 }
